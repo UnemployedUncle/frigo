@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block content %}
+<a href="/" class="muted">← 대시보드로 돌아가기</a>
+<section class="card" style="margin-top: 12px;">
+  <h1>{{ recipe.title }}</h1>
+  <p class="muted">{{ recipe.cuisine }} / {{ recipe.summary }}</p>
+  <p>총 단계 수: {{ total_steps }} / 현재 단계: {{ current_step.step_number }}</p>
+  <p>총 예상 시간: {{ total_minutes }}분</p>
+</section>
+
+<section class="card" style="margin-top: 20px;">
+  <h2>{{ current_step.step_number }}단계. {{ current_step.title }}</h2>
+  <p>{{ current_step.description }}</p>
+  <p><strong>도구:</strong> {{ current_step.tool }}</p>
+  <p><strong>예상 시간:</strong> {{ current_step.estimated_minutes }}분</p>
+  <div>
+    {% for ingredient in current_step.ingredients %}
+      <span class="pill">{{ ingredient }}</span>
+    {% endfor %}
+  </div>
+  <div class="step-nav">
+    {% if prev_step %}
+      <a href="/ui/workflow/{{ recipe.id }}?step={{ prev_step }}"><button type="button">이전</button></a>
+    {% else %}
+      <span></span>
+    {% endif %}
+    {% if next_step %}
+      <a href="/ui/workflow/{{ recipe.id }}?step={{ next_step }}"><button type="button">다음</button></a>
+    {% else %}
+      <a href="/"><button type="button">완료</button></a>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}
