@@ -1,0 +1,4 @@
+{"recipe_id":"garlic_mushroom_pasta","step_number":1,"title":"재료 손질","description":"버섯은 먹기 좋게 썰고 마늘은 편으로 썹니다.","ingredients":["버섯","마늘"],"tool":"도마, 칼","estimated_minutes":5}
+{"recipe_id":"garlic_mushroom_pasta","step_number":2,"title":"면 삶기","description":"끓는 물에 소금을 넣고 파스타면을 삶습니다.","ingredients":["파스타면","소금"],"tool":"냄비, 집게","estimated_minutes":9}
+{"recipe_id":"garlic_mushroom_pasta","step_number":3,"title":"소스 만들기","description":"팬에 올리브오일을 두르고 마늘과 버섯을 볶아 향을 냅니다.","ingredients":["올리브오일","마늘","버섯"],"tool":"프라이팬, 뒤집개","estimated_minutes":6}
+{"recipe_id":"garlic_mushroom_pasta","step_number":4,"title":"면 섞기","description":"삶은 면을 팬에 넣고 버섯 소스와 고루 섞은 뒤 접시에 담습니다.","ingredients":["파스타면","버섯","파마산 치즈"],"tool":"프라이팬, 집게","estimated_minutes":3}

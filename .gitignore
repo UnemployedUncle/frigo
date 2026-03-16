@@ -135,7 +135,10 @@ celerybeat.pid
 *.sage.py
 
 # Environments
+# Local secrets for OpenRouter and other runtime configuration
 .env
+.env.local
+.env.*.local
 .envrc
 .venv
 env/
@@ -206,4 +209,4 @@ marimo/_static/
 marimo/_lsp/
 __marimo__/
 
-/Archive
+# /Archive

@@ -9,6 +9,46 @@
 - `Plan Repas & Courses`: 레시피 추천 및 장보기
 - `Etapes`: 쿠킹 모드
 
+---
+
+## 환경 변수 설정
+
+이 프로젝트는 OpenRouter를 사용할 수 있도록 환경 변수 파일을 기준으로 API 키를 관리합니다.
+
+1. 루트 디렉터리에서 `.env.example`을 참고해 `.env` 파일을 준비합니다.
+2. `.env` 파일의 `OPENROUTER_API_KEY`에 본인의 OpenRouter API 키를 입력합니다.
+3. 필요하면 `OPENROUTER_BASE_URL`은 기본값 `https://openrouter.ai/api/v1`을 사용합니다.
+
+예시:
+
+```bash
+cp .env.example .env
+```
+
+`.env` 파일 예시:
+
+```env
+OPENROUTER_API_KEY=your_openrouter_api_key_here
+OPENROUTER_BASE_URL=https://openrouter.ai/api/v1
+```
+
+보안을 위해 `.env`는 `.gitignore`에 포함되어 있으며, 실제 API 키는 저장소에 커밋하지 않습니다.
+
+## Agent 모델 구성
+
+현재 프로젝트의 모든 agent는 OpenRouter를 통해 동일한 모델을 사용합니다.
+
+- 냉장고 관리 agent: `nvidia/nemotron-3-super-120b-a12b:free`
+- 레시피 검색 plan agent: `nvidia/nemotron-3-super-120b-a12b:free`
+- 장보기 목록 agent: `nvidia/nemotron-3-super-120b-a12b:free`
+- workflow 구성 agent: `nvidia/nemotron-3-super-120b-a12b:free`
+
+현재는 모든 agent가 같은 LLM을 바라보지만, 추후 기능별로 다른 모델을 연결할 수 있도록 확장 가능한 구조를 전제로 합니다.
+
+OpenRouter 예시 호출 코드는 [openrouter_ex.py](/Users/yongsupyi/Desktop/frigo/Archive/openrouter_ex.py)에 정리되어 있습니다.
+
+---
+
 ## 프로젝트 소개
 
 이 서비스는 냉장고 속 재료와 유통기한을 중심으로 식사 계획을 세우도록 돕습니다. 이미 가진 재료를 먼저 활용하게 하고, 필요한 장보기만 제안하며, 요리 기록까지 한 흐름으로 연결하는 것이 목표입니다.
@@ -26,6 +66,8 @@
 - 유통기한 중심 의사결정: 빨리 소비해야 하는 재료를 우선순위에 둡니다.
 - 장보기 최소화: 부족한 재료만 추려 효율적으로 구매하게 합니다.
 - 요리 습관화: 계획, 장보기, 조리, 기록이 하나의 흐름으로 이어지게 설계합니다.
+
+---
 
 ## 주요 기능
 
