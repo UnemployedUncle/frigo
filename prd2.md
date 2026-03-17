@@ -2,236 +2,315 @@
 
 ## 1. 문서 목적
 
-이 문서는 다음 개발 스프린트에서 구현할 제품 범위를 명확하게 고정하기 위한 문서입니다.
-이번 단계의 방향은 아래와 같습니다.
+이 문서는 현재 서비스의 다음 구현 단계를 `실행 가능한 text-first flow` 기준으로 고정하기 위한 문서입니다.
 
-- 화면은 최대한 단순하게 구성합니다.
-- 사진보다 텍스트 중심으로 정보를 표현합니다.
-- 홈 화면을 중심으로 완료 기록, 추천, 냉장고 상태를 한 번에 보여줍니다.
-- 레시피 상세와 workflow도 텍스트 중심으로 구성합니다.
-- workflow 실행 시 step 타이머가 실제로 동작해야 합니다.
+이번 단계의 핵심 목표는 아래와 같습니다.
 
-기준 문서는 아래 두 가지입니다.
+- 사진 없이 텍스트만으로 전체 플로우를 구성합니다.
+- 주간 식단은 제외합니다.
+- `Home -> Fridge -> Recipe Detail -> Cook Mode -> Complete` 흐름이 실제로 동작해야 합니다.
+- 사용자는 냉장고를 자연어로 입력하고, 추천 레시피를 보고, 장보기 목록을 확인한 뒤, 단계별 조리를 수행할 수 있어야 합니다.
 
-- 현재 코드베이스에서 실제로 확인된 구현 상태
-- [Archive/260316_README.md](/Users/yongsupyi/Desktop/frigo/Archive/260316_README.md)에 정리된 제품 비전
+기준 문서는 아래 3개입니다.
 
-## 2. 현재 구현 상태 요약
+- 현재 코드베이스의 실제 구현 상태
+- [Archive/260316_README.md](/Users/yongsupyi/Desktop/frigo/Archive/260316_README.md)
+- [Archive/260317_textRepresentation.md](/Users/yongsupyi/Desktop/frigo/Archive/260317_textRepresentation.md)
 
-현재 프로젝트는 아래 4개 흐름이 동작하는 MVP 상태입니다.
+현재 문서의 상태 표기 규칙은 아래와 같습니다.
 
-- 냉장고 자연어 입력 및 재료 CRUD
-- 레시피 추천 생성과 검색 plan 기록
-- 레시피 기준 장보기 목록 생성
-- 레시피 workflow 조회 및 단계 이동
+- `[x]` 현재 코드 기준 구현 완료
+- `[ ]` 아직 추가 개발 필요
 
-현재 앱은 Docker Compose로 실행되며, 시작 시 migration, recipe seed 적재, workflow validation 후 FastAPI 서버가 올라갑니다.
+## 2. 제품 목표
 
-## 3. 이번 스프린트 목표
+이번 버전은 `텍스트 기반 cooking tracker`입니다.
 
-이번 스프린트의 목표는 `텍스트 중심의 cooking tracker + recommendation home`을 만드는 것입니다.
+핵심 경험은 아래 4단계입니다.
 
-핵심 목표는 아래 4가지입니다.
+1. Home에서 잔디와 추천 레시피를 확인합니다.
+2. Fridge에서 자연어로 재료를 입력하고 실제 값을 수정합니다.
+3. Recipe Detail에서 재료, shopping list, 전체 workflow를 확인합니다.
+4. Cook Mode에서 타이머 기반으로 step을 자동 진행하고 완료 기록을 남깁니다.
 
-- 홈 화면
-- 완료 기록과 잔디 심기
-- 레시피 상세와 추천 8개
-- workflow 실행 타이머
+## 3. 범위
 
-이번 단계에서는 복잡한 기능을 늘리지 않고, 현재 있는 추천 및 workflow 기능을 사용자 여정 중심으로 다시 묶는 데 집중합니다.
+### 3.1 포함 범위
 
-## 4. 이번 스프린트 범위
+- [x] Home은 `잔디 + 추천 레시피 8개`만 보여줍니다.
+- [x] Fridge는 별도 `/fridge` 화면으로 제공합니다.
+- [x] Fridge 화면에는 `자연어 입력 + 텍스트 냉장고 + 편집 테이블`을 모두 둡니다.
+- [x] Recipe Detail은 `재료 + shopping list + 전체 workflow + Start Cooking`으로 구성합니다.
+- [x] Cook Mode는 `자동 타이머 + 자동 다음 step 이동 + Pause / Resume / Stop`을 지원합니다.
+- [x] 마지막 step 완료 시 `cooking_sessions`에 완료 기록을 저장합니다.
+- [x] 100개 workflow 모두 `estimated_seconds`를 가져야 합니다.
 
-### 4.1 포함 범위
-
-- [ ] 홈 화면을 새 기준으로 재구성합니다.
-- [ ] 완료 기록 저장 구조를 추가합니다.
-- [ ] 홈에서 완료 잔디와 최근 완료 레시피 4개를 보여줍니다.
-- [ ] 홈에서 냉장고 기준 추천 레시피 8개를 보여줍니다.
-- [ ] 홈에서 냉장고 재료를 텍스트로 보여줍니다.
-- [ ] 레시피 상세 화면을 텍스트 중심으로 제공합니다.
-- [ ] workflow 실행 화면에서 step 타이머를 동작시킵니다.
-- [ ] 100개 workflow 모두에 10초 이내 타이머 값을 부여합니다.
-- [ ] 데모용 완료 기록 4건을 seed로 추가합니다.
-
-### 4.2 제외 범위
+### 3.2 제외 범위
 
 - [ ] 사진 기반 추천
-- [ ] 주간 식단 추천
+- [ ] 주간 식단
 - [ ] 주간 장보기 최적화
+- [ ] 부분 조리 세션 복구
 - [ ] 개인화 추천
 - [ ] 소셜 기능
-- [ ] 고급 cooking mode
-- [ ] 이미지 입력/OCR
 
-## 5. 화면 요구사항
+## 4. 화면 구조
 
-### 5.1 Home (`/`)
+### 4.1 Home (`/`)
 
-홈 화면은 현재 개발용 입력 화면이 아니라 운영용 대시보드가 되어야 합니다.
+Home은 아래 두 블록만 가집니다.
 
-- [ ] 최상단에 잔디 심기 영역이 있어야 합니다.
-- [ ] 잔디는 날짜별 레시피 완료 수를 기준으로 표시해야 합니다.
-- [ ] 잔디 아래에 최근 완료 레시피 4개를 카드 형태로 보여줘야 합니다.
-- [ ] 그 아래에 현재 냉장고 재료를 텍스트 목록으로 보여줘야 합니다.
-- [ ] 그 아래에 냉장고 기준 추천 레시피 8개를 카드 형태로 보여줘야 합니다.
-- [ ] 화면은 전체적으로 사진 없이 텍스트만으로 구성합니다.
+- `Cooking Grass`
+- `Recommended Recipes 8`
 
-### 5.2 냉장고 표시 방식
+세부 요구사항:
 
-- [ ] 냉장고는 표 중심이 아니라 텍스트 리스트 중심으로 표현합니다.
-- [ ] 예시는 `chicken 1 pack / broccoli 1 bag / onion 1`처럼 간단한 문자열 목록입니다.
-- [ ] 냉장고 입력/수정 기능은 유지하되, 홈에서는 요약 텍스트 형태로 우선 노출합니다.
+- [x] 잔디는 날짜별 완료 레시피 수를 기준으로 표시합니다.
+- [x] 추천 레시피는 최대 8개 노출합니다.
+- [x] 각 추천 카드는 `제목`, `한 줄 설명`, `핵심 재료`, `View Recipe`를 보여줍니다.
+- [x] Home에는 냉장고 입력, 냉장고 텍스트 블록, 편집 테이블, 최근 완료 카드를 두지 않습니다.
 
-### 5.3 추천 레시피 카드
+### 4.2 Fridge (`/fridge`)
 
-- [ ] 홈에서는 추천 레시피를 최대 8개 노출합니다.
-- [ ] 카드에는 최소한 `제목`, `한 줄 설명`, `핵심 재료`가 보여야 합니다.
-- [ ] 추천 결과가 8개 미만이면 가능한 개수만 노출합니다.
-- [ ] 추천 엔진은 기존 로직을 유지하되, 홈 노출 개수만 8개 기준으로 맞춥니다.
+Fridge는 냉장고 운영 화면입니다.
 
-### 5.4 레시피 상세 (`/recipes/{recipe_id}`)
+상단:
 
-- [ ] 사진 없이 제목, 요약, 재료 목록, 전체 workflow를 텍스트로 출력합니다.
-- [ ] 전체 재료는 레시피의 `required_ingredients` 기준으로 보여줍니다.
-- [ ] 전체 workflow는 step 번호, 제목, 설명, 도구, 예상 시간을 텍스트로 보여줍니다.
-- [ ] 상세 화면에는 `조리 시작` 버튼이 있어야 합니다.
+- [x] 자연어 입력 textarea
+- [x] 입력 안내 문구
+- [x] 저장 직후 `parsed preview` 텍스트 목록
 
-### 5.5 조리 실행 (`/cook/{recipe_id}`)
+중단:
 
-- [ ] 현재 step 1개만 집중해서 보여줍니다.
-- [ ] step 타이머가 자동으로 작동해야 합니다.
-- [ ] 이전, 다음, 완료 이동이 가능해야 합니다.
-- [ ] 마지막 step 완료 시 해당 레시피의 완료 기록을 남길 수 있어야 합니다.
+- [x] 텍스트 냉장고 블록
+- [x] `DOOR / FRIDGE / FRIDGE2 / DOOR2 / FREEZER` 구조 유지
+- [x] 각 항목은 `이름 + 수량/단위 + D-day/상태`를 텍스트로 표시
 
-## 6. 데이터 및 스키마 요구사항
+하단:
 
-### 6.1 완료 기록
+- [x] 실제 값 편집 테이블
+- [x] 컬럼은 `name / quantity / unit / expiry_date / save / delete`
 
-완료 기록 저장 구조는 `cooking_sessions`로 고정합니다.
+### 4.3 Recipe Detail (`/recipes/{recipe_id}`)
 
-- [ ] `id`
-- [ ] `recipe_id`
-- [ ] `completed_at`
-- [ ] `actual_seconds`
-- [ ] `created_at`
+Recipe Detail은 실행 전 검토 화면입니다.
 
-홈 화면에서 사용하는 조합 데이터는 아래를 기준으로 합니다.
+- [x] `required_ingredients` 전체를 텍스트로 표시합니다.
+- [x] 현재 냉장고 기준 shopping list를 같은 화면에서 보여줍니다.
+- [x] 전체 workflow step을 모두 보여줍니다.
+- [x] 각 step은 `번호 / 제목 / 설명 / 도구 / estimated_seconds`를 표시합니다.
+- [x] `Start Cooking` 버튼으로 Cook Mode에 진입합니다.
 
-- [ ] `completion_grass`: `{date, count}` 배열
-- [ ] `recent_completed_recipes`: 최근 완료 4건
-- [ ] `recommended_recipes`: 최대 8건
-- [ ] `fridge_summary_items`: 텍스트 목록
+### 4.4 Cook Mode (`/cook/{recipe_id}`)
 
-### 6.2 완료 기록 seed
+Cook Mode는 실행 화면입니다.
 
-데모용 완료 기록 4건을 seed로 넣습니다.
+- [x] 현재 step 1개를 크게 보여줍니다.
+- [x] `estimated_seconds` 기반 카운트다운이 자동 시작됩니다.
+- [x] 타이머가 0이 되면 자동으로 다음 step으로 이동합니다.
+- [x] 마지막 step은 자동 완료 처리합니다.
+- [x] 사용자 제어는 `Pause`, `Resume`, `Stop`, `Complete Now`를 제공합니다.
+- [x] `Stop`은 미완료 상태로 종료하고 Recipe Detail로 돌아갑니다.
 
-- [ ] 현재 100개 레시피 중 4개를 `random.Random(20260317)`로 샘플링합니다.
-- [ ] 완료일은 최근 7일 안에서 분산되도록 설정합니다.
-- [ ] 이 4건은 홈의 잔디와 최근 완료 카드에 즉시 나타나야 합니다.
-- [ ] 이 4건은 사용자 실데이터가 아니라 데모 seed임을 문서에 명시합니다.
+## 5. 데이터 및 인터페이스
 
-### 6.3 workflow 스키마 변경
+### 5.1 라우트
 
-현재 `estimated_minutes`만으로는 10초 이내 타이머를 표현할 수 없으므로, workflow step 명세를 갱신합니다.
+- [x] `GET /` : Home
+- [x] `GET /fridge` : Fridge 화면
+- [x] `POST /ui/fridge/parse` : 자연어 입력 저장 후 preview 포함 렌더
+- [x] `POST /ui/fridge/items/{item_id}/update` : 냉장고 항목 수정
+- [x] `POST /ui/fridge/items/{item_id}/delete` : 냉장고 항목 삭제
+- [x] `GET /recipes/{recipe_id}` : Recipe Detail
+- [x] `GET /cook/{recipe_id}` : Cook Mode
+- [x] `POST /cook/{recipe_id}/complete` : 완료 기록 저장
 
-새 필수 필드는 아래와 같습니다.
+### 5.2 데이터 구조
 
-- [ ] `recipe_id`
-- [ ] `step_number`
-- [ ] `title`
-- [ ] `description`
-- [ ] `ingredients`
-- [ ] `tool`
-- [ ] `estimated_seconds`
+완료 기록은 `cooking_sessions`를 사용합니다.
 
-추가 규칙은 아래와 같습니다.
+- [x] `id`
+- [x] `recipe_id`
+- [x] `completed_at`
+- [x] `actual_seconds`
+- [x] `created_at`
 
-- [ ] 기존 `estimated_minutes`는 제거 대상 또는 deprecated로 간주합니다.
-- [ ] 100개 workflow JSONL 모두에 `estimated_seconds`를 추가합니다.
-- [ ] `estimated_seconds`는 각 step마다 1초에서 10초 사이 값이어야 합니다.
-- [ ] 값은 임의 부여하되 재현 가능한 고정 규칙을 사용해야 합니다.
-- [ ] 예시 규칙은 `recipe_id + step_number` 기반 고정 랜덤 또는 해시 기반입니다.
+workflow step은 아래 필드를 기준으로 합니다.
 
-## 7. 라우트 및 동작 요구사항
+- [x] `recipe_id`
+- [x] `step_number`
+- [x] `title`
+- [x] `description`
+- [x] `ingredients`
+- [x] `tool`
+- [x] `estimated_seconds`
 
-- [ ] `/`는 더 이상 개발용 입력 화면이 아니라 홈 대시보드 역할을 합니다.
-- [ ] `/recipes/{recipe_id}`는 텍스트 기반 레시피 상세 화면입니다.
-- [ ] `/cook/{recipe_id}`는 step 타이머 실행 화면입니다.
-- [ ] 현재 개발용 대시보드 화면은 후순위 처리하거나 별도 개발용 경로로 이동할 수 있습니다.
+규칙:
 
-## 8. 구현 체크리스트
+- [x] `estimated_seconds`는 1~10초 범위입니다.
+- [x] `estimated_minutes`는 호환용 보조 필드로만 유지합니다.
+- [x] Home 추천은 `fallback-safe` 경로로 최대 8개 반환합니다.
+- [x] Recipe Detail의 shopping list는 현재 `fridge_items` 기준 실시간 계산 결과입니다.
 
-### 8.1 Home 조합 로직
+### 5.3 Legacy / Transitional
 
-- [ ] 완료 기록 집계 로직을 추가합니다.
-- [ ] 최근 완료 레시피 4건 조회 로직을 추가합니다.
-- [ ] 추천 레시피 8건 조회 로직을 추가합니다.
-- [ ] 냉장고 텍스트 요약 생성 로직을 추가합니다.
+- [x] runtime workflow source of truth는 `workflow_steps` 테이블입니다.
+- [x] `workflow_file`는 호환용 보조 필드로만 유지합니다.
+- [x] `estimated_minutes`는 deprecated 상태이며 `estimated_seconds`가 주 필드입니다.
+- [x] UI 화면 경로는 LLM보다 fallback 로직을 우선 사용합니다.
 
-### 8.2 완료 기록
+## 6. 구현 체크리스트
 
-- [ ] `cooking_sessions` migration을 추가합니다.
-- [ ] 완료 기록 repository/service를 추가합니다.
-- [ ] 완료 기록 seed 4건 생성 스크립트를 추가합니다.
+### 6.1 Home
 
-### 8.3 레시피 상세와 cooking
+- [x] Home에서 냉장고 관련 UI를 제거합니다.
+- [x] 잔디와 추천 레시피 8개만 남깁니다.
 
-- [ ] 텍스트 중심 상세 화면 템플릿을 추가합니다.
-- [ ] cooking 실행 화면 템플릿을 추가합니다.
-- [ ] step 타이머 표시와 완료 흐름을 구현합니다.
+### 6.2 Fridge
 
-### 8.4 workflow 데이터 갱신
+- [x] `/fridge` 템플릿을 추가합니다.
+- [x] 자연어 입력 결과 preview를 표시합니다.
+- [x] 텍스트 냉장고와 편집 테이블을 같은 화면에서 제공합니다.
 
-- [ ] 100개 workflow 파일 모두에 `estimated_seconds`를 추가합니다.
-- [ ] 기존 validator를 새 스키마 기준으로 수정합니다.
-- [ ] workflow seed 데이터와 화면 표시 로직을 새 필드에 맞춥니다.
+### 6.3 Recipe Detail
 
-## 9. 테스트 계획
+- [x] `/recipes/{recipe_id}` 화면을 기준 경로로 사용합니다.
+- [x] 레시피 재료, shopping list, workflow를 한 화면에 묶습니다.
 
-### 9.1 홈 화면
+### 6.4 Cook Mode
 
-- [ ] 완료 기록 4건이 seed되면 잔디에 날짜별 카운트가 표시되어야 합니다.
-- [ ] 최근 완료 레시피 카드가 4개 보여야 합니다.
-- [ ] 추천 레시피 카드가 최대 8개 보여야 합니다.
-- [ ] 냉장고 재료가 텍스트 형태로 노출되어야 합니다.
+- [x] 자동 카운트다운을 구현합니다.
+- [x] 0초 도달 시 자동 다음 step 이동을 구현합니다.
+- [x] 마지막 step에서는 자동 완료 처리합니다.
+- [x] Pause / Resume / Stop UI를 제공합니다.
+- [x] Stop 시 부분 진행 상태는 저장하지 않습니다.
 
-### 9.2 레시피 상세
+### 6.5 데이터
 
-- [ ] 재료 목록이 텍스트로 렌더링되어야 합니다.
-- [ ] 전체 workflow step이 텍스트로 렌더링되어야 합니다.
-- [ ] 조리 시작 버튼이 보여야 합니다.
+- [x] 100개 workflow의 `estimated_seconds`를 검증합니다.
+- [x] 완료 기록 seed를 유지합니다.
 
-### 9.3 cooking timer
+## 7. 예시 화면
 
-- [ ] 모든 workflow step의 `estimated_seconds` 값은 1~10 범위여야 합니다.
-- [ ] `/cook/{recipe_id}`에서 현재 step 타이머가 그 값으로 시작해야 합니다.
-- [ ] 이전/다음/완료 이동이 동작해야 합니다.
+### 7.1 Home
 
-### 9.4 데이터 검증
+```text
+Frigo Home
 
-- [ ] 100개 workflow 파일 모두 새 스키마를 만족해야 합니다.
-- [ ] 완료 기록 4건이 seed되어야 합니다.
-- [ ] 추천 결과가 홈에서 최대 8건까지 노출되어야 합니다.
+Cooking Grass
+[날짜별 완료 수]
 
-## 10. 백로그
+Recommended For Tonight
+[Card] Chicken Divan
+[Card] Egg Drop Soup
+[Card] Sesame Ginger Chicken
+...
+```
 
-이번 스프린트에서 제외하지만 이후 고려할 항목은 아래와 같습니다.
+### 7.2 Fridge
+
+```text
+Fridge
+
+Natural Input
+시금치 1봉지 내일, 새우 200g 오늘, 버터 1개
+
+Parsed Preview
+- 시금치 / 1 봉지 / 2026-03-18
+- 새우 / 200 g / 2026-03-17
+
+FRIGO
+DOOR / FRIDGE / FRIDGE2 / DOOR2 / FREEZER
+
+Edit Table
+name | quantity | unit | expiry_date | save | delete
+```
+
+### 7.3 Recipe Detail
+
+```text
+Recipe Detail
+
+Chicken Divan
+
+Ingredients
+- margarine 1/4 c.
+- onion 1/4 c.
+
+Shopping List
+- broccoli / need 1 pkg / have 0 / missing
+
+Full Workflow
+1. Saute / pan / 7s
+2. Heat / general / 6s
+...
+
+Start Cooking
+```
+
+### 7.4 Cook Mode
+
+```text
+Cooking Mode
+
+Step 2 of 10
+Heat
+Time left: 06s
+
+[Pause] [Resume] [Stop] [Complete Now]
+
+0초 도달 -> 자동 다음 step 이동
+마지막 step 종료 -> 자동 완료
+```
+
+## 8. 테스트 계획
+
+- [x] `/`에서 잔디와 추천 8개만 보여야 합니다.
+- [x] `/`에 냉장고 입력이나 편집 테이블이 없어야 합니다.
+- [x] `/fridge`에서 자연어 입력, preview, 텍스트 냉장고, 편집 테이블이 모두 보여야 합니다.
+- [x] 자연어 입력 후 결과가 preview와 저장 데이터에 동시에 반영되어야 합니다.
+- [x] `/recipes/{recipe_id}`에서 재료, shopping list, workflow가 모두 보여야 합니다.
+- [x] `/cook/{recipe_id}`에서 카운트다운이 자동 시작되어야 합니다.
+- [x] 카운트다운 종료 시 다음 step으로 자동 이동해야 합니다.
+- [x] `Pause`, `Resume`, `Stop`이 화면에 있어야 합니다.
+- [x] 마지막 step 완료 시 `cooking_sessions`가 1건 증가해야 합니다.
+- [x] workflow validator가 100개 파일을 통과해야 합니다.
+
+## 9. 현재 구현 상태 요약
+
+- [x] `docker compose up --build -d` 기준으로 migration, seed, workflow validation 후 앱이 기동됩니다.
+- [x] Home은 잔디와 추천 8개만 보여줍니다.
+- [x] Fridge는 별도 화면으로 분리되어 있습니다.
+- [x] Recipe Detail은 shopping list와 workflow를 함께 보여줍니다.
+- [x] Cook Mode는 자동 진행과 완료 기록 저장을 지원합니다.
+
+## 10. 추가 개발 필요 사항
+
+- [ ] Cook Mode의 pause/resume 상태를 브라우저 새로고침이나 이탈 후에도 복구할지 결정 후 구현이 필요합니다.
+- [ ] `Stop` 이후 다시 조리를 시작할 때 이전 step부터 재개할지, 항상 1단계부터 시작할지 명확한 정책 구현이 필요합니다. 현재는 항상 상세 화면으로만 복귀합니다.
+- [ ] Home 추천 품질을 더 높이기 위한 랭킹 개선이 필요합니다. 현재는 text-first 응답속도를 우선한 fallback-safe 추천입니다.
+- [ ] Fridge 텍스트 레이아웃의 칸 배치 규칙을 재료 카테고리 기반으로 고도화할 여지가 있습니다. 현재는 단순 분배 + 일부 freezer 키워드 기반입니다.
+- [ ] Recipe Detail의 shopping list를 저장 이력과 연결할지, 현재처럼 조회 시점 계산만 유지할지에 대한 후속 개발이 필요합니다.
+- [ ] 시드 데이터 100건의 품질 검수와 레시피/재료 정규화 고도화가 추가로 필요합니다.
+
+## 11. 결정 필요 사항
+
+- [ ] Home에 최근 완료 카드 4개를 다시 넣을지 여부를 결정해야 합니다. 현재는 범위에서 제외했습니다.
+- [ ] `Complete Now` 버튼을 유지할지, 마지막 step 자동 완료만 허용할지 결정이 필요합니다.
+- [ ] shopping list를 별도 화면으로 분리할지, 현재처럼 Recipe Detail 내부 섹션으로 유지할지 결정이 필요합니다.
+- [ ] Cook Mode의 타이머 만료 시 자동 완료 직전에 사용자 확인 단계를 둘지 여부를 결정해야 합니다.
+- [ ] 자연어 입력 결과를 저장 전에 사용자가 수정할 수 있는 preview-confirm 단계가 필요한지 결정해야 합니다.
+
+## 12. 백로그
 
 - [ ] 사진 기반 추천
-- [ ] 주간 식단 추천
-- [ ] 주간 장보기 최적화
-- [ ] 취향 기반 개인화
-- [ ] 레시피 수정 및 나만의 레시피 저장
-- [ ] 추천 품질 로그 고도화
-- [ ] OpenRouter 장애 대응 강화
+- [ ] 주간 식단
+- [ ] 부분 조리 세션 복구
+- [ ] 개인화 추천
 
-## 11. 가정
+## 13. 가정
 
-- [ ] 이번 `prd2.md`는 실제 구현용 기준 문서입니다.
-- [ ] 완료 기록 4건은 사용자 실데이터가 아니라 데모 seed입니다.
-- [ ] 랜덤 4건은 고정 랜덤 시드로 재현 가능해야 합니다.
-- [ ] 화면은 사진 없이 텍스트 중심으로 구성합니다.
-- [ ] 현재 100개 recipe/workflow seed는 유지합니다.
-- [ ] 이번 단계에서는 completion seed와 workflow timer 정보를 추가합니다.
+- [ ] Home의 “레시피만”은 추천 레시피 8개를 의미합니다.
+- [ ] 최근 완료 카드 4개는 이번 Home 범위에서 제외합니다.
+- [ ] shopping list는 별도 독립 화면이 아니라 Recipe Detail 내부 섹션으로 제공합니다.
+- [ ] Cook Mode의 자동 진행은 브라우저 내 상태로 처리합니다.

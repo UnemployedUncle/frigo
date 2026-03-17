@@ -1,16 +1,7 @@
-from typing import Dict, List, TypedDict
-
-from langchain_core.prompts import ChatPromptTemplate
-from langgraph.graph import END, StateGraph
+from typing import List
 
 from app.openrouter import structured_client
 from app.schemas import RecipeSearchAgentResponse, RecipeSearchSelection
-
-
-class RecipeState(TypedDict, total=False):
-    fridge_items: List[dict]
-    desired_count: int
-    plan_steps: List[Dict]
 
 
 def _fallback_selection(fridge_items: List[dict], desired_count: int) -> RecipeSearchAgentResponse:
@@ -34,37 +25,28 @@ def _fallback_selection(fridge_items: List[dict], desired_count: int) -> RecipeS
 
 class RecipeSearchAgent:
     def __init__(self) -> None:
-        self.prompt = ChatPromptTemplate.from_messages(
-            [
-                (
-                    "system",
-                    "You create a recipe search plan from fridge items. Return only JSON matching the schema.",
-                ),
-                ("human", "Desired ingredient count: {desired_count}\nFridge items: {fridge_items}"),
-            ]
-        )
-        graph = StateGraph(RecipeState)
-        graph.add_node("select", self._select_node)
-        graph.set_entry_point("select")
-        graph.add_edge("select", END)
-        self.graph = graph.compile()
+        self.system_prompt = "You create a recipe search plan from fridge items. Return only JSON matching the schema."
 
-    def _select_node(self, state: RecipeState) -> RecipeState:
-        fridge_items = state["fridge_items"]
-        desired_count = state["desired_count"]
+    def _select(self, fridge_items: List[dict], desired_count: int) -> RecipeSearchSelection:
         if structured_client.enabled:
-            prompt_value = self.prompt.invoke({"desired_count": desired_count, "fridge_items": fridge_items})
             response = structured_client.generate(
                 schema_name="recipe_search_agent_response",
                 response_model=RecipeSearchAgentResponse,
-                system_prompt=prompt_value.messages[0].content,
-                user_prompt=prompt_value.messages[1].content,
+                system_prompt=self.system_prompt,
+                user_prompt=f"Desired ingredient count: {desired_count}\nFridge items: {fridge_items}",
             )
             if response is not None:
-                return {"plan_steps": [step.model_dump() for step in response.plan_steps]}
+                return response.plan_steps[0]
         fallback = _fallback_selection(fridge_items, desired_count)
-        return {"plan_steps": [step.model_dump() for step in fallback.plan_steps]}
+        return fallback.plan_steps[0]
 
-    def build_selection(self, fridge_items: List[dict], desired_count: int) -> RecipeSearchSelection:
-        result = self.graph.invoke({"fridge_items": fridge_items, "desired_count": desired_count})
-        return RecipeSearchSelection(**result["plan_steps"][0])
+    def build_selection(
+        self,
+        fridge_items: List[dict],
+        desired_count: int,
+        force_fallback: bool = False,
+    ) -> RecipeSearchSelection:
+        if force_fallback:
+            fallback = _fallback_selection(fridge_items, desired_count)
+            return fallback.plan_steps[0]
+        return self._select(fridge_items, desired_count)

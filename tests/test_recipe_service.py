@@ -7,7 +7,7 @@ class FakeAgent:
     def __init__(self, selections):
         self.selections = selections
 
-    def build_selection(self, fridge_items, desired_count):
+    def build_selection(self, fridge_items, desired_count, force_fallback=False):
         return self.selections[desired_count]
 
 

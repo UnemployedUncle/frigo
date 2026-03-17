@@ -3,21 +3,161 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{{ title or "Frigo MVP" }}</title>
+  <title>{{ title or "Frigo" }}</title>
   <style>
-    body { font-family: sans-serif; margin: 0; background: #f5f1e8; color: #222; }
-    main { max-width: 1100px; margin: 0 auto; padding: 24px; }
-    h1, h2, h3 { margin-top: 0; }
-    .grid { display: grid; gap: 20px; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); }
-    .card { background: #fffaf0; border: 1px solid #e6dcc8; border-radius: 16px; padding: 20px; }
-    table { width: 100%; border-collapse: collapse; }
-    th, td { text-align: left; padding: 8px; border-bottom: 1px solid #e6dcc8; font-size: 14px; }
-    input, button, textarea { font: inherit; padding: 10px; border-radius: 10px; border: 1px solid #cdbf9f; width: 100%; box-sizing: border-box; }
-    button { cursor: pointer; background: #2f5d50; color: white; border: none; width: auto; }
-    .actions { display: flex; gap: 8px; flex-wrap: wrap; }
-    .muted { color: #6b665c; font-size: 14px; }
-    .pill { display: inline-block; padding: 4px 8px; border-radius: 999px; background: #efe7d3; font-size: 12px; margin-right: 4px; }
-    .step-nav { display: flex; justify-content: space-between; margin-top: 20px; }
+    :root {
+      --bg: #f3efe4;
+      --paper: #fbf7ed;
+      --ink: #1f2a20;
+      --muted: #5f665a;
+      --line: #cfc4af;
+      --accent: #2e4d38;
+      --accent-2: #c65a32;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.35), rgba(255,255,255,0) 28%),
+        var(--bg);
+      color: var(--ink);
+      font-family: "IBM Plex Mono", "SFMono-Regular", "Courier New", monospace;
+      line-height: 1.5;
+    }
+    a { color: inherit; text-decoration: none; }
+    main { max-width: 1160px; margin: 0 auto; padding: 28px 20px 40px; }
+    h1, h2, h3, p { margin-top: 0; }
+    .hero, .panel, .text-card {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      box-shadow: 0 10px 30px rgba(31, 42, 32, 0.05);
+    }
+    .hero {
+      padding: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 20px;
+    }
+    .hero h1 { font-size: 34px; margin-bottom: 12px; }
+    .eyebrow, .panel-title {
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .lede { color: var(--muted); max-width: 60ch; }
+    .layout-two { display: grid; gap: 20px; grid-template-columns: 1.2fr 0.8fr; }
+    .layout-three { display: grid; gap: 20px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .panel { padding: 20px; }
+    .text-card { padding: 18px; }
+    .button, button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 42px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      border: 1px solid var(--ink);
+      background: transparent;
+      color: var(--ink);
+      cursor: pointer;
+      font: inherit;
+    }
+    .button-primary, button.primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #f7f1e4;
+    }
+    .button-accent { border-color: var(--accent-2); color: var(--accent-2); }
+    .actions { display: flex; gap: 10px; flex-wrap: wrap; }
+    .muted { color: var(--muted); }
+    .card-grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+    .pill-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+    .pill {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(46, 77, 56, 0.06);
+      font-size: 12px;
+    }
+    .ascii-fridge {
+      background: #f7f1e2;
+      border: 1px dashed var(--line);
+      border-radius: 16px;
+      padding: 16px;
+      white-space: pre-wrap;
+    }
+    .fridge-grid {
+      display: grid;
+      gap: 14px;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      margin-top: 16px;
+    }
+    .fridge-bin {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px;
+      min-height: 140px;
+      background: rgba(255, 255, 255, 0.45);
+    }
+    .fridge-bin h3 { font-size: 13px; letter-spacing: 0.12em; text-transform: uppercase; }
+    .fridge-bin ul, .text-list, .plain-list { list-style: none; padding: 0; margin: 0; }
+    .fridge-bin li, .plain-list li, .text-list li { padding: 4px 0; border-bottom: 1px solid rgba(207, 196, 175, 0.55); }
+    .fridge-bin li:last-child, .plain-list li:last-child, .text-list li:last-child { border-bottom: none; }
+    textarea, input {
+      width: 100%;
+      font: inherit;
+      color: inherit;
+      background: #fffdf7;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 12px 14px;
+    }
+    textarea { min-height: 140px; resize: vertical; }
+    .mini-form { display: grid; gap: 8px; grid-template-columns: 1.2fr 0.8fr 0.8fr 1fr auto auto; margin-top: 8px; }
+    .step-list { display: grid; gap: 12px; }
+    .step-row {
+      display: grid;
+      grid-template-columns: 30px 1fr;
+      gap: 12px;
+      padding: 12px 0;
+      border-top: 1px solid rgba(207, 196, 175, 0.65);
+    }
+    .step-row:first-child { border-top: none; padding-top: 0; }
+    .step-meta { color: var(--muted); }
+    .grass-grid { display: grid; gap: 10px; grid-template-columns: repeat(7, minmax(0, 1fr)); margin-top: 14px; }
+    .grass-cell {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 10px;
+      text-align: center;
+      min-height: 74px;
+      background: rgba(255, 255, 255, 0.45);
+    }
+    .grass-count { font-size: 26px; color: var(--accent); }
+    .timer-shell {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 4px;
+      background: rgba(255,255,255,0.6);
+    }
+    .timer-fill {
+      width: 100%;
+      height: 16px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+      transition: width 1s linear;
+    }
+    .timer-readout { font-size: 40px; margin: 6px 0 14px; }
+    .cook-grid { display: grid; gap: 20px; grid-template-columns: 1.4fr 0.6fr; }
+    @media (max-width: 900px) {
+      .layout-two, .layout-three, .cook-grid, .fridge-grid { grid-template-columns: 1fr; }
+      .hero { flex-direction: column; }
+      .mini-form { grid-template-columns: 1fr; }
+    }
   </style>
 </head>
 <body>

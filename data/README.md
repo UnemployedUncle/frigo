@@ -6,12 +6,15 @@ Keep the following files only on your local machine:
 
 - `Raw/full_dataset.csv`
 - `data/recipes.jsonl`
-- `data/workflows/*.jsonl`
+- `data/workflow_steps.jsonl`
 
 Required local paths for the current app:
 
 - `data/recipes.jsonl`: seed data for `scripts/seed_recipes.py`
-- `data/workflows/*.jsonl`: workflow files for `scripts/validate_workflows.py`
+- `data/workflow_steps.jsonl`: workflow step seed for `scripts/validate_workflows.py` and DB loading
+
+Current runtime does not use `data/workflows/`.
+If that directory still exists locally from the old 100-recipe setup, it can be deleted.
 
 Optional local paths:
 

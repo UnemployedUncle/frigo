@@ -1,4 +1,5 @@
 import unittest
+from datetime import datetime, timezone
 from unittest.mock import patch
 
 from fastapi.testclient import TestClient
@@ -73,16 +74,15 @@ class FakeRecipeService:
                 "required_ingredients": [],
                 "optional_ingredients": [],
                 "search_keywords": ["shrimp", "garlic"],
-                "workflow_file": "data/workflows/garlic_shrimp_pasta.jsonl",
             }
         ]
 
-    def recommend(self, fridge_items):
+    def recommend(self, fridge_items, limit=5, force_fallback=False, minimum_overlap=None, persist_plan=True):
         return self.plan_steps, self.recipes
 
 
 class FakeShoppingService:
-    def build_for_recipe(self, recipe_id, fridge_items):
+    def build_for_recipe(self, recipe_id, fridge_items, persist=True, force_fallback=False):
         if recipe_id != "recipe-1":
             raise ValueError(f"Recipe not found: {recipe_id}")
         return {
@@ -116,7 +116,6 @@ class FakeWorkflowService:
                 "required_ingredients": [],
                 "optional_ingredients": [],
                 "search_keywords": ["shrimp", "garlic"],
-                "workflow_file": "data/workflows/garlic_shrimp_pasta.jsonl",
             },
             "steps": [
                 {
@@ -126,7 +125,7 @@ class FakeWorkflowService:
                     "description": "Boil the pasta.",
                     "ingredients": ["Pasta"],
                     "tool": "pot",
-                    "estimated_minutes": 10,
+                    "estimated_seconds": 8,
                 },
                 {
                     "recipe_id": recipe_id,
@@ -135,10 +134,43 @@ class FakeWorkflowService:
                     "description": "Cook the shrimp with garlic.",
                     "ingredients": ["Shrimp", "Garlic"],
                     "tool": "pan",
-                    "estimated_minutes": 5,
+                    "estimated_seconds": 5,
                 },
             ],
         }
+
+
+class FakeCookingService:
+    def __init__(self):
+        self.completed = []
+
+    def completion_grass(self, days=14):
+        base = [
+            {"date": "2026-03-10", "count": 0, "label": "Mon", "iso_date": "2026-03-10"},
+            {"date": "2026-03-11", "count": 1, "label": "Tue", "iso_date": "2026-03-11"},
+            {"date": "2026-03-12", "count": 0, "label": "Wed", "iso_date": "2026-03-12"},
+            {"date": "2026-03-13", "count": 2, "label": "Thu", "iso_date": "2026-03-13"},
+            {"date": "2026-03-14", "count": 0, "label": "Fri", "iso_date": "2026-03-14"},
+            {"date": "2026-03-15", "count": 1, "label": "Sat", "iso_date": "2026-03-15"},
+            {"date": "2026-03-16", "count": 0, "label": "Sun", "iso_date": "2026-03-16"},
+        ]
+        return base
+
+    def recent_completed(self, limit=4):
+        return [
+            {
+                "id": "session-1",
+                "recipe_id": "recipe-1",
+                "title": "Garlic Shrimp Pasta",
+                "summary": "Shrimp pasta",
+                "primary_ingredients": ["Shrimp", "Garlic"],
+                "completed_at": datetime(2026, 3, 15, 19, 0, tzinfo=timezone.utc),
+                "actual_seconds": 13,
+            }
+        ]
+
+    def complete_recipe(self, recipe_id, actual_seconds):
+        self.completed.append((recipe_id, actual_seconds))
 
 
 class AppRoutesTest(unittest.TestCase):
@@ -147,11 +179,13 @@ class AppRoutesTest(unittest.TestCase):
         self.recipe_service = FakeRecipeService()
         self.shopping_service = FakeShoppingService()
         self.workflow_service = FakeWorkflowService()
+        self.cooking_service = FakeCookingService()
         self.patchers = [
             patch.object(main_module, "fridge_service", self.fridge_service),
             patch.object(main_module, "recipe_service", self.recipe_service),
             patch.object(main_module, "shopping_service", self.shopping_service),
             patch.object(main_module, "workflow_service", self.workflow_service),
+            patch.object(main_module, "cooking_service", self.cooking_service),
         ]
         for patcher in self.patchers:
             patcher.start()
@@ -167,6 +201,10 @@ class AppRoutesTest(unittest.TestCase):
         self.assertEqual(response.json()["source_text_id"], "log-1")
         self.assertEqual(len(self.fridge_service.items), 2)
 
+        ui_response = self.client.post("/ui/fridge/parse", data={"raw_text": "Shrimp 200g today"})
+        self.assertEqual(ui_response.status_code, 200)
+        self.assertIn("PARSED PREVIEW", ui_response.text)
+
         response = self.client.patch(
             "/fridge/items/item-1",
             json={"name": "Baby Spinach", "quantity": 2, "unit": "bag", "expiry_date": None},
@@ -176,7 +214,7 @@ class AppRoutesTest(unittest.TestCase):
 
         response = self.client.delete("/fridge/items/item-1")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(self.fridge_service.items), 1)
+        self.assertEqual(len(self.fridge_service.items), 2)
 
     def test_recommend_shopping_and_workflow_routes(self):
         recommend_response = self.client.post("/recipes/recommend")
@@ -194,9 +232,32 @@ class AppRoutesTest(unittest.TestCase):
         self.assertEqual(len(workflow_response.json()["steps"]), 2)
 
     def test_ui_workflow_navigation_and_not_found_handling(self):
-        response = self.client.get("/ui/workflow/recipe-1?step=2")
+        home_response = self.client.get("/")
+        self.assertEqual(home_response.status_code, 200)
+        self.assertIn("COOKING GRASS", home_response.text)
+        self.assertNotIn("IN YOUR FRIDGE", home_response.text)
+        self.assertNotIn("NATURAL INPUT", home_response.text)
+
+        fridge_response = self.client.get("/fridge")
+        self.assertEqual(fridge_response.status_code, 200)
+        self.assertIn("TEXT FRIDGE", fridge_response.text)
+        self.assertIn("NATURAL INPUT", fridge_response.text)
+
+        detail_response = self.client.get("/recipes/recipe-1")
+        self.assertEqual(detail_response.status_code, 200)
+        self.assertIn("RECIPE DETAIL", detail_response.text)
+        self.assertIn("SHOPPING LIST", detail_response.text)
+
+        response = self.client.get("/cook/recipe-1?step=2")
         self.assertEqual(response.status_code, 200)
-        self.assertIn("2단계. Saute", response.text)
+        self.assertIn("COOKING MODE", response.text)
+        self.assertIn("2. Saute", response.text)
+        self.assertIn("Pause", response.text)
+        self.assertIn("Stop", response.text)
+
+        complete_response = self.client.post("/cook/recipe-1/complete", data={"actual_seconds": 13}, follow_redirects=False)
+        self.assertEqual(complete_response.status_code, 303)
+        self.assertEqual(self.cooking_service.completed, [("recipe-1", 13)])
 
         shopping_not_found = self.client.post("/shopping-list", json={"recipe_id": "missing"})
         self.assertEqual(shopping_not_found.status_code, 404)

@@ -45,7 +45,15 @@ class RecipeService:
             return [fridge_item_count]
         return []
 
-    def recommend(self, fridge_items: List[Dict[str, Any]]) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
+    def recommend(
+        self,
+        fridge_items: List[Dict[str, Any]],
+        *,
+        limit: int = 5,
+        force_fallback: bool = False,
+        minimum_overlap: int | None = None,
+        persist_plan: bool = True,
+    ) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
         if not fridge_items:
             return [], []
 
@@ -57,8 +65,8 @@ class RecipeService:
 
         while counts_to_try:
             count = counts_to_try.pop(0)
-            selection = self.agent.build_selection(fridge_items, count)
-            min_overlap = 1 if len(fridge_items) == 1 else 2
+            selection = self.agent.build_selection(fridge_items, count, force_fallback=force_fallback)
+            min_overlap = minimum_overlap if minimum_overlap is not None else (1 if len(fridge_items) == 1 else 2)
             matches = self._match_recipes(selection.selected_ingredients, min_overlap)
 
             next_step = None
@@ -77,7 +85,8 @@ class RecipeService:
                 "result_count": len(matches),
                 "next_step": next_step,
             }
-            self.plan_repo.insert_plan_step(step)
+            if persist_plan:
+                self.plan_repo.insert_plan_step(step)
             plan_steps.append(step)
             attempt_no += 1
 
@@ -100,4 +109,4 @@ class RecipeService:
             key=lambda item: self._score_recipe(recipes_by_id[item[0]], fridge_items, item[1]),
             reverse=True,
         )
-        return plan_steps, [recipes_by_id[recipe_id] for recipe_id, _ in ranked[:5]]
+        return plan_steps, [recipes_by_id[recipe_id] for recipe_id, _ in ranked[:limit]]

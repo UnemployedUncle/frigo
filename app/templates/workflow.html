@@ -1,34 +1,117 @@
 {% extends "base.html" %}
 {% block content %}
-<a href="/" class="muted">← 대시보드로 돌아가기</a>
-<section class="card" style="margin-top: 12px;">
-  <h1>{{ recipe.title }}</h1>
-  <p class="muted">{{ recipe.cuisine }} / {{ recipe.summary }}</p>
-  <p>총 단계 수: {{ total_steps }} / 현재 단계: {{ current_step.step_number }}</p>
-  <p>총 예상 시간: {{ total_minutes }}분</p>
+<section class="hero">
+  <div>
+    <p class="eyebrow">COOKING MODE</p>
+    <h1>{{ recipe.title }}</h1>
+    <p class="lede">{{ recipe.summary }}</p>
+    <p class="muted">Step {{ current_step.step_number }} of {{ total_steps }} / Total timer {{ total_seconds }}s</p>
+  </div>
+  <div class="actions">
+    <a class="button" href="/">Home</a>
+    <a class="button" href="/recipes/{{ recipe.id }}">Recipe Detail</a>
+  </div>
 </section>
 
-<section class="card" style="margin-top: 20px;">
-  <h2>{{ current_step.step_number }}단계. {{ current_step.title }}</h2>
-  <p>{{ current_step.description }}</p>
-  <p><strong>도구:</strong> {{ current_step.tool }}</p>
-  <p><strong>예상 시간:</strong> {{ current_step.estimated_minutes }}분</p>
-  <div>
-    {% for ingredient in current_step.ingredients %}
-      <span class="pill">{{ ingredient }}</span>
-    {% endfor %}
-  </div>
-  <div class="step-nav">
-    {% if prev_step %}
-      <a href="/ui/workflow/{{ recipe.id }}?step={{ prev_step }}"><button type="button">이전</button></a>
-    {% else %}
-      <span></span>
-    {% endif %}
-    {% if next_step %}
-      <a href="/ui/workflow/{{ recipe.id }}?step={{ next_step }}"><button type="button">다음</button></a>
-    {% else %}
-      <a href="/"><button type="button">완료</button></a>
-    {% endif %}
-  </div>
-</section>
+<div class="cook-grid" style="margin-top: 24px;">
+  <section class="panel">
+    <p class="panel-title">CURRENT STEP</p>
+    <div class="timer-readout"><span id="timer-value">{{ current_step.estimated_seconds }}</span>s</div>
+    <div class="timer-shell" aria-hidden="true">
+      <div class="timer-fill" id="timer-fill"></div>
+    </div>
+    <div class="step-row" style="grid-template-columns: 1fr; padding-top: 18px;">
+      <div>
+        <h2>{{ current_step.step_number }}. {{ current_step.title }}</h2>
+        <p>{{ current_step.description }}</p>
+        <p class="muted">Tool: {{ current_step.tool }}</p>
+        <div class="pill-row">
+          {% for ingredient in current_step.ingredients %}
+          <span class="pill">{{ ingredient }}</span>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <div class="actions" style="margin-top: 20px;">
+      <button type="button" id="pause-button">Pause</button>
+      <button type="button" id="resume-button" style="display: none;">Resume</button>
+      <a class="button button-accent" href="{{ stop_url }}">Stop</a>
+      <form action="/cook/{{ recipe.id }}/complete" method="post" id="complete-form">
+        <input type="hidden" name="actual_seconds" value="{{ total_seconds }}">
+        <button class="primary" type="submit">Complete Now</button>
+      </form>
+    </div>
+  </section>
+
+  <section class="panel">
+    <p class="panel-title">FULL WORKFLOW</p>
+    <div class="step-list">
+      {% for step in steps %}
+      <article class="step-row">
+        <div class="step-meta">{% if step.step_number == current_step.step_number %}&gt;{% else %}{{ step.step_number }}{% endif %}</div>
+        <div>
+          <strong>{{ step.title }}</strong>
+          <div class="muted">{{ step.tool }} / {{ step.estimated_seconds }}s</div>
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+  </section>
+</div>
+
+<script>
+  (() => {
+    const initialSeconds = {{ current_step.estimated_seconds }};
+    const timerValue = document.getElementById("timer-value");
+    const timerFill = document.getElementById("timer-fill");
+    const pauseButton = document.getElementById("pause-button");
+    const resumeButton = document.getElementById("resume-button");
+    const completeForm = document.getElementById("complete-form");
+    const nextUrl = {{ ('"' ~ next_url ~ '"') if next_url else 'null' }};
+    let remaining = initialSeconds;
+    let paused = false;
+    let intervalId = null;
+
+    const render = () => {
+      const ratio = initialSeconds === 0 ? 0 : remaining / initialSeconds;
+      timerValue.textContent = String(remaining).padStart(2, "0");
+      timerFill.style.width = `${Math.max(0, ratio) * 100}%`;
+    };
+
+    const tick = () => {
+      if (paused) {
+        return;
+      }
+      remaining -= 1;
+      if (remaining <= 0) {
+        remaining = 0;
+        render();
+        window.clearInterval(intervalId);
+        if (nextUrl) {
+          window.location.href = nextUrl;
+          return;
+        }
+        completeForm.submit();
+        return;
+      }
+      render();
+    };
+
+    pauseButton.addEventListener("click", () => {
+      paused = true;
+      pauseButton.style.display = "none";
+      resumeButton.style.display = "inline-flex";
+    });
+
+    resumeButton.addEventListener("click", () => {
+      paused = false;
+      resumeButton.style.display = "none";
+      pauseButton.style.display = "inline-flex";
+    });
+
+    render();
+    intervalId = window.setInterval(tick, 1000);
+  })();
+</script>
 {% endblock %}

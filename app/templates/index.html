@@ -1,141 +1,52 @@
 {% extends "base.html" %}
 {% block content %}
-<h1>요리 여정 MVP</h1>
-<p class="muted">냉장고 입력 -> 추천 -> 장보기 -> workflow 흐름을 최소 기능으로 테스트할 수 있는 화면입니다.</p>
-
-<div class="grid">
-  <section class="card">
-    <h2>냉장고 입력</h2>
-    <form action="/ui/fridge/parse" method="post">
-      <textarea name="raw_text" rows="5" placeholder="예: 시금치 1봉지 내일, 새우 200g 오늘, 버터 1개">{{ raw_text or "" }}</textarea>
-      <div class="actions" style="margin-top: 12px;">
-        <button type="submit">재료 파싱 및 저장</button>
-      </div>
-    </form>
-  </section>
-
-  <section class="card">
-    <h2>추천 실행</h2>
-    <form action="/ui/recommend" method="post">
-      <button type="submit">레시피 추천 생성</button>
-    </form>
-    <p class="muted" style="margin-top: 12px;">주재료 5개 기준으로 시작하고 0건이면 4개, 3개로 줄입니다.</p>
-  </section>
-</div>
-
-<section class="card" style="margin-top: 20px;">
-  <h2>냉장고 재료</h2>
-  {% if fridge_items %}
-  <table>
-    <thead>
-      <tr>
-        <th>재료명</th>
-        <th>수량</th>
-        <th>단위</th>
-        <th>유통기한</th>
-        <th>남은 일수</th>
-        <th>수정</th>
-        <th>삭제</th>
-      </tr>
-    </thead>
-    <tbody>
-    {% for item in fridge_items %}
-      <tr>
-        <form action="/ui/fridge/items/{{ item.id }}/update" method="post">
-          <td><input name="name" value="{{ item.name }}"></td>
-          <td><input name="quantity" value="{{ item.quantity or '' }}"></td>
-          <td><input name="unit" value="{{ item.unit or '' }}"></td>
-          <td><input name="expiry_date" type="date" value="{{ item.expiry_date or '' }}"></td>
-          <td>{{ item.days_left if item.days_left is not none else '-' }}</td>
-          <td><button type="submit">저장</button></td>
-        </form>
-        <td>
-          <form action="/ui/fridge/items/{{ item.id }}/delete" method="post">
-            <button type="submit">삭제</button>
-          </form>
-        </td>
-      </tr>
-    {% endfor %}
-    </tbody>
-  </table>
-  {% else %}
-  <p class="muted">아직 저장된 재료가 없습니다.</p>
-  {% endif %}
+<section class="hero">
+  <div>
+    <p class="eyebrow">FRIGO / TEXT HOME</p>
+    <h1>Text-first recipe flow, ready to cook.</h1>
+    <p class="lede">Home은 잔디와 추천 레시피만 보여주고, 냉장고 입력과 편집은 별도 Fridge 화면으로 분리합니다.</p>
+  </div>
+  <div class="actions">
+    <a class="button" href="/fridge">Open Fridge</a>
+    <a class="button button-primary" href="#recommended">Recommended For Tonight</a>
+  </div>
 </section>
 
-{% if plan_steps %}
-<section class="card" style="margin-top: 20px;">
-  <h2>검색 Plan</h2>
-  {% for step in plan_steps %}
-    <div style="margin-bottom: 12px;">
-      <strong>{{ step.attempt_no }}차 시도</strong>
-      <div class="muted">{{ step.query_text }}</div>
-      <div>
-        {% for ingredient in step.selected_ingredients %}
-          <span class="pill">{{ ingredient }}</span>
-        {% endfor %}
-      </div>
-      <div class="muted">결과 수: {{ step.result_count }}{% if step.next_step %} / 다음: {{ step.next_step }}{% endif %}</div>
+<section class="panel" style="margin-top: 24px;">
+  <p class="panel-title">COOKING GRASS</p>
+  {% for row in grass_rows %}
+  <div class="grass-grid">
+    {% for cell in row %}
+    <div class="grass-cell">
+      <div class="muted">{{ cell.label }}</div>
+      <div class="grass-count">{{ cell.count }}</div>
+      <div class="muted">{{ cell.iso_date[5:] }}</div>
     </div>
+    {% endfor %}
+  </div>
   {% endfor %}
 </section>
-{% endif %}
 
-{% if recipes %}
-<section class="card" style="margin-top: 20px;">
-  <h2>추천 레시피</h2>
-  <div class="grid">
+<section class="panel" style="margin-top: 24px;" id="recommended">
+  <p class="panel-title">RECOMMENDED FOR TONIGHT</p>
+  <div class="card-grid">
     {% for recipe in recipes %}
-    <article class="card">
+    <article class="text-card">
+      <p class="eyebrow">PLAN REPAS</p>
       <h3>{{ recipe.title }}</h3>
-      <p class="muted">{{ recipe.cuisine }} / {{ recipe.summary }}</p>
-      <div>
-        {% for ingredient in recipe.primary_ingredients %}
-          <span class="pill">{{ ingredient }}</span>
+      <p class="muted">{{ recipe.summary }}</p>
+      <div class="pill-row">
+        {% for ingredient in recipe.primary_ingredients[:3] %}
+        <span class="pill">{{ ingredient }}</span>
         {% endfor %}
       </div>
-      <form action="/ui/shopping" method="post" style="margin-top: 12px;">
-        <input type="hidden" name="recipe_id" value="{{ recipe.id }}">
-        <button type="submit">장보기 목록 보기</button>
-      </form>
+      <div class="actions" style="margin-top: 14px;">
+        <a class="button" href="/recipes/{{ recipe.id }}">View Recipe</a>
+      </div>
     </article>
+    {% else %}
+    <p class="muted">냉장고에 맞는 추천 결과가 없습니다.</p>
     {% endfor %}
   </div>
 </section>
-{% endif %}
-
-{% if shopping %}
-<section class="card" style="margin-top: 20px;">
-  <h2>장보기 목록</h2>
-  {% if shopping.shopping_items %}
-  <table>
-    <thead>
-      <tr>
-        <th>재료</th>
-        <th>필요 수량</th>
-        <th>현재 수량</th>
-        <th>사유</th>
-        <th>필수 구매</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for item in shopping.shopping_items %}
-      <tr>
-        <td>{{ item.name }}</td>
-        <td>{{ item.required_quantity or '-' }} {{ item.unit or '' }}</td>
-        <td>{{ item.current_quantity or '-' }}</td>
-        <td>{{ item.reason }}</td>
-        <td>{{ '예' if item.must_buy else '아니오' }}</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-  {% else %}
-  <p class="muted">추가 구매 없이 조리 가능합니다.</p>
-  {% endif %}
-  <div class="actions" style="margin-top: 12px;">
-    <a href="/ui/workflow/{{ shopping.recipe_id }}"><button type="button">workflow 시작</button></a>
-  </div>
-</section>
-{% endif %}
 {% endblock %}

@@ -31,11 +31,6 @@ class RecipeRepository:
         rows_by_id = {row["id"]: row for row in rows}
         return [rows_by_id[recipe_id] for recipe_id in recipe_ids if recipe_id in rows_by_id]
 
-    def list_recipes(self) -> List[Dict[str, Any]]:
-        with get_connection() as conn, conn.cursor() as cur:
-            cur.execute("SELECT * FROM recipes ORDER BY title")
-            return cur.fetchall()
-
     def get_recipe(self, recipe_id: str) -> Optional[Dict[str, Any]]:
         with get_connection() as conn, conn.cursor() as cur:
             cur.execute("SELECT * FROM recipes WHERE id = %s", (recipe_id,))

@@ -1,118 +1,296 @@
-# 요리 여정
+# Frigo
 
-요리 여정은 냉장고에 있는 재료를 자연어로 정리하고, 그 재료를 바탕으로 레시피를 추천하고, 장보기 목록과 단계별 workflow까지 이어지는 MVP를 만드는 프로젝트입니다.
+Frigo is a text-first cooking tracker. The service takes fridge items from natural language, recommends recipes from the current fridge state, shows a per-recipe shopping list, and runs step-by-step cooking with an auto-advancing timer.
 
-현재 문서는 장기 비전보다 `지금 구현하고 테스트할 수 있는 MVP` 기준으로 정리되어 있습니다.
+The current product direction is documented in [prd2.md](/Users/yongsupyi/Desktop/frigo/prd2.md). This README is focused on the codebase as it exists now.
 
-## 현재 MVP 범위
+## Current Scope
 
-이번 MVP에서 실제로 구현하는 기능은 아래 4가지입니다.
+Implemented now:
 
-- 냉장고 자연어 입력 및 재료 표 관리
-- 레시피 검색 plan 기반 추천
-- 장보기 목록 생성
-- 레시피 workflow 조회 및 단계 이동
+- Text-first Home screen with cooking grass and 8 recipe recommendations
+- Separate Fridge screen with natural-language input, text fridge layout, and editable table
+- Recipe detail screen with ingredients, shopping list, and full workflow
+- Cook mode with `estimated_seconds` countdown, auto-next-step, pause/resume/stop
+- Completion logging in `cooking_sessions`
+- PostgreSQL-backed workflow storage
+- Large local seed loading from JSONL into Postgres
 
-이번 MVP에서 제외하는 기능은 아래와 같습니다.
+Explicitly out of scope now:
 
-- 홈 대시보드
-- 주간 식단 추천
-- 주간 장보기 최적화
-- 개인화 추천 고도화
-- 운영 로그 및 호출 로그
+- Photo-based UI
+- Weekly meal planning
+- Advanced personalization
+- Partial cook-session resume
 
-## 환경 변수 설정
+## Product Flow
 
-이 프로젝트는 OpenRouter를 사용할 수 있도록 환경 변수 파일을 기준으로 API 키를 관리합니다.
+The main user flow is:
 
-1. 루트 디렉터리에서 `.env.example`을 참고해 `.env` 파일을 준비합니다.
-2. `.env` 파일의 `OPENROUTER_API_KEY`에 본인의 OpenRouter API 키를 입력합니다.
-3. `OPENROUTER_BASE_URL`은 기본값 `https://openrouter.ai/api/v1`을 사용합니다.
-4. `DATABASE_URL`은 PostgreSQL 연결 문자열을 사용합니다.
+1. Open `/` to see cooking grass and recommended recipes.
+2. Open `/fridge` to add or edit fridge items.
+3. Open `/recipes/{recipe_id}` to review ingredients, shopping list, and workflow.
+4. Open `/cook/{recipe_id}` to run the timer-driven workflow.
+5. Complete the recipe and save a `cooking_sessions` record.
 
-예시:
+## Runtime Architecture
+
+Core services:
+
+- `FridgeService`: parses natural language and manages fridge items
+- `RecipeService`: recommends recipes using indexed ingredient overlap
+- `ShoppingService`: computes missing ingredients from the current fridge
+- `WorkflowService`: reads workflow steps from the database
+- `CookingService`: records completed cooking sessions
+
+Storage:
+
+- PostgreSQL is the runtime database
+- `recipes` stores recipe metadata
+- `workflow_steps` stores all workflow rows
+- `recipe_search_terms` is the search index for fast recommendation lookup
+- `fridge_items` stores current fridge inventory
+- `cooking_sessions` stores completed cooking runs
+
+Important change:
+
+- Workflow execution no longer depends on `data/workflows/*.jsonl`
+- Runtime now reads from the `workflow_steps` table
+- If `data/workflows` still exists locally, it is legacy data and can be deleted
+
+## Main Routes
+
+UI routes:
+
+- `GET /`: Home
+- `GET /fridge`: Fridge page
+- `POST /ui/fridge/parse`: fridge natural-language form submit
+- `POST /ui/fridge/items/{item_id}/update`: fridge item update
+- `POST /ui/fridge/items/{item_id}/delete`: fridge item delete
+- `GET /recipes/{recipe_id}`: recipe detail
+- `GET /cook/{recipe_id}`: cook mode
+- `POST /cook/{recipe_id}/complete`: save completion record
+
+API-like routes still present:
+
+- `POST /fridge/parse`
+- `GET /fridge/items`
+- `PATCH /fridge/items/{item_id}`
+- `DELETE /fridge/items/{item_id}`
+- `POST /recipes/recommend`
+- `POST /shopping-list`
+- `GET /recipes/{recipe_id}/workflow`
+
+## Environment
+
+Copy `.env.example`:
 
 ```bash
 cp .env.example .env
 ```
 
-`.env` 파일 예시:
+Current variables:
 
 ```env
 OPENROUTER_API_KEY=your_openrouter_api_key_here
 OPENROUTER_BASE_URL=https://openrouter.ai/api/v1
+OPENROUTER_MODEL=gpt-oss-120b
+OPENROUTER_FALLBACK_MODEL=Qwen3.5-122B-A10B
 DATABASE_URL=postgresql://frigo:frigo@localhost:5432/frigo
 ```
 
-보안을 위해 `.env`는 `.gitignore`에 포함되어 있으며, 실제 API 키는 저장소에 커밋하지 않습니다.
+Model aliases are normalized in [config.py](/Users/yongsupyi/Desktop/frigo/app/config.py):
 
-## Agent 모델 구성
+- `gpt-oss-120b` -> `openai/gpt-oss-120b:free`
+- `Qwen3.5-122B-A10B` -> `qwen/qwen3.5-122b-a10b`
 
-현재 프로젝트의 모든 agent는 OpenRouter를 통해 동일한 모델을 사용합니다.
+OpenRouter is optional. If the API call fails or is disabled, the app falls back to deterministic local parsing/recommendation logic.
 
-- 기본 모델: `openai/gpt-oss-120b:free`
-- fallback 모델: `qwen/qwen3.5-122b-a10b`
+## Local Run
 
-현재는 모든 agent가 기본적으로 `gpt-oss-120b`를 사용하고, 실패 시 `Qwen3.5-122B-A10B`로 한 번 더 재시도합니다. 이후 기능별로 다른 모델을 연결할 수 있도록 확장 가능한 구조를 전제로 합니다.
-
-`.env`에는 짧은 모델명만 넣어도 됩니다.
-
-```env
-OPENROUTER_MODEL=gpt-oss-120b
-OPENROUTER_FALLBACK_MODEL=Qwen3.5-122B-A10B
-```
-
-앱 내부에서 각각 `openai/gpt-oss-120b:free`, `qwen/qwen3.5-122b-a10b`로 정규화합니다.
-
-OpenRouter 예시 호출 코드는 [openrouter_ex.py](/Users/yongsupyi/Desktop/frigo/Archive/openrouter_ex.py)에 정리되어 있습니다.
-
-## 로컬 실행
-
-Docker가 준비되어 있다면 아래 방식으로 앱과 PostgreSQL을 함께 실행합니다.
+Start the app and Postgres:
 
 ```bash
 docker compose up --build
 ```
 
-앱 컨테이너는 시작 시 migration, recipe seed 적재, workflow 검증을 먼저 수행한 뒤 FastAPI 서버를 실행합니다.
+Background mode:
 
-## 현재 MVP 흐름
+```bash
+docker compose up --build -d
+```
 
-1. 사용자가 냉장고 재료를 자연어로 입력합니다.
-2. 냉장고 관리 agent가 입력을 구조화해 PostgreSQL에 저장합니다.
-3. 저장된 재료는 표 형태로 조회, 수정, 삭제할 수 있습니다.
-4. 레시피 검색 agent가 냉장고 재료로 검색 plan을 만들고 레시피를 추천합니다.
-5. 장보기 목록 agent가 없는 재료와 절반 이하 재고를 계산합니다.
-6. 선택한 레시피의 workflow jsonl을 읽어 단계별 화면으로 보여줍니다.
+Stop:
 
-## 핵심 데이터
+```bash
+docker compose down
+```
 
-- 레시피 seed 데이터: [recipes.jsonl](/Users/yongsupyi/Desktop/frigo/data/recipes.jsonl)
-- workflow 데이터: [data/workflows](/Users/yongsupyi/Desktop/frigo/data/workflows)
-- 상세 개발 기준: [prd.md](/Users/yongsupyi/Desktop/frigo/prd.md)
+After startup, the app is available at:
 
-## GitHub 업로드용 경량 구성
+- `http://localhost:8000`
 
-이 저장소는 GitHub 업로드 시 코드 중심으로만 올리고, 대용량 raw 데이터와 seed 데이터는 로컬에만 두는 구성을 지원합니다.
+On container start, the app runs:
 
-- `Raw/full_dataset.csv`는 로컬 전용입니다.
-- `data/recipes.jsonl`, `data/workflows/*.jsonl`도 로컬 전용입니다.
-- GitHub에는 코드, 설정 파일, 문서, 로컬 데이터 안내 파일만 올립니다.
+1. DB migrations
+2. recipe/workflow seed load
+3. workflow validation
+4. FastAPI via Uvicorn
 
-로컬에서 다시 실행하려면 아래 경로를 직접 준비해야 합니다.
+## Seed and Data Files
 
-- `Raw/full_dataset.csv`
+This repository uses local-only seed files under `data/`.
+
+Current seed inputs:
+
+- [recipes.jsonl](/Users/yongsupyi/Desktop/frigo/data/recipes.jsonl)
+- [workflow_steps.jsonl](/Users/yongsupyi/Desktop/frigo/data/workflow_steps.jsonl)
+
+Current local artifacts:
+
+- [raw_seed_report.json](/Users/yongsupyi/Desktop/frigo/data/raw_seed_report.json)
+- [raw_seed_review.jsonl](/Users/yongsupyi/Desktop/frigo/data/raw_seed_review.jsonl)
+
+Current local generated full seed, based on `Raw/full_dataset.csv`:
+
+- raw rows scanned: `2,231,142`
+- accepted recipes: `2,231,111`
+- excluded rows: `31`
+- workflow steps: `14,631,812`
+
+DB load status currently verified:
+
+- `recipes`: `2,231,111`
+- `workflow_steps`: `14,631,812`
+- `recipe_search_terms`: `24,558,436`
+- `fridge_items`: `9`
+- `cooking_sessions`: `4`
+
+## Large Seed Workflow
+
+The one-off full-seed builder is:
+
+- [raw_full_seed_builder.ipynb](/Users/yongsupyi/Desktop/frigo/notebooks/raw_full_seed_builder.ipynb)
+
+It reads `Raw/full_dataset.csv` in streaming mode and generates:
+
 - `data/recipes.jsonl`
-- `data/workflows/*.jsonl`
+- `data/workflow_steps.jsonl`
+- `data/raw_seed_review.jsonl`
+- `data/raw_seed_report.json`
 
-세부 경로 규칙은 [data/README.md](/Users/yongsupyi/Desktop/frigo/data/README.md)에 정리되어 있습니다.
+It also backs up the previous local seed under:
 
-탐색용 노트북과 일회성 raw 정제 스크립트는 현재 [Archive](/Users/yongsupyi/Desktop/frigo/Archive) 아래로 옮겨 두었습니다.
+- `Archive/seed_backup_*`
 
-## 향후 확장
+This replaced the old “one workflow file per recipe” idea. For large data, workflows are stored as rows in `workflow_steps`, not as millions of files.
 
-- 기능별 모델 다변화
-- 주간 식단 추천
-- 주간 장보기 최적화
-- 추천 랭킹 고도화
-- 사용자 개인화
+## Loading Seed into Postgres
+
+Load local seed files into Postgres:
+
+```bash
+docker compose run --rm -T -v "$PWD:/app" app python scripts/seed_recipes.py
+```
+
+What the seed script does:
+
+- clears runtime tables
+- loads `recipes.jsonl`
+- loads `workflow_steps.jsonl`
+- rebuilds `recipe_search_terms`
+- inserts demo fridge items
+- inserts demo completion records
+
+Workflow validation:
+
+```bash
+python scripts/validate_workflows.py
+```
+
+This validates `data/workflow_steps.jsonl` by default. Directory-based validation remains only for explicit legacy use.
+
+## Natural Language Input
+
+Examples that work well now:
+
+```text
+chicken 1 pack today, broccoli 1 bag tomorrow, onion 1, egg 2
+```
+
+```text
+시금치 한 봉지 이번 주말, 새우 200g 내일, 버터 1개
+```
+
+```text
+egg 2 today, chicken broth 1 can, green onion 1, cornstarch 1
+```
+
+The parser is most stable when ingredients are separated by commas.
+
+## Recommendation Strategy
+
+Recommendation no longer scans all recipes in Python.
+
+Current strategy:
+
+1. Normalize fridge terms
+2. Query `recipe_search_terms`
+3. Get candidate recipe IDs by overlap count
+4. Hydrate a small candidate set from `recipes`
+5. Re-rank with fridge urgency and return top results
+
+This is the current path that supports million-scale recipe data.
+
+## Legacy Files
+
+These remain in the repo or local workspace as legacy/reference material:
+
+- `Archive/`: exploration docs, references, seed backups, old examples
+- `workflow_file`: deprecated recipe compatibility field
+- `estimated_minutes`: deprecated workflow compatibility field
+
+They are not part of the current main data flow unless explicitly used for reference.
+
+## GitHub Policy
+
+This repository is intentionally configured so large local data does not get pushed.
+
+Ignored local-only assets include:
+
+- `Raw/`
+- `data/*` except lightweight placeholders/docs
+- `notebooks/`
+- `Archive/seed_backup_*`
+
+That means generated seed outputs such as:
+
+- `data/recipes.jsonl`
+- `data/workflow_steps.jsonl`
+- `data/raw_seed_report.json`
+- `data/raw_seed_review.jsonl`
+
+stay local and are not uploaded to GitHub.
+
+## Tests and Verification
+
+Useful commands:
+
+```bash
+python scripts/validate_workflows.py
+```
+
+```bash
+docker compose run --rm -T -v "$PWD:/app" app python -m unittest discover -s tests -p 'test_*.py'
+```
+
+```bash
+docker exec frigo-db-1 psql -U frigo -d frigo -c "select count(*) from recipes;"
+```
+
+## References
+
+- Product spec: [prd2.md](/Users/yongsupyi/Desktop/frigo/prd2.md)
+- Earlier MVP spec: [prd.md](/Users/yongsupyi/Desktop/frigo/prd.md)
+- Text UI reference: [260317_textRepresentation.md](/Users/yongsupyi/Desktop/frigo/Archive/260317_textRepresentation.md)
+- Archived notes: [Archive](/Users/yongsupyi/Desktop/frigo/Archive)

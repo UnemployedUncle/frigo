@@ -1,17 +1,8 @@
 from collections import defaultdict
-from typing import Dict, List, TypedDict
-
-from langchain_core.prompts import ChatPromptTemplate
-from langgraph.graph import END, StateGraph
+from typing import List
 
 from app.openrouter import structured_client
 from app.schemas import ShoppingItemAgentModel, ShoppingListAgentResponse
-
-
-class ShoppingState(TypedDict, total=False):
-    recipe: dict
-    fridge_items: List[dict]
-    items: List[Dict]
 
 
 def _fallback_shopping(recipe: dict, fridge_items: List[dict]) -> ShoppingListAgentResponse:
@@ -56,37 +47,26 @@ def _fallback_shopping(recipe: dict, fridge_items: List[dict]) -> ShoppingListAg
 
 class ShoppingAgent:
     def __init__(self) -> None:
-        self.prompt = ChatPromptTemplate.from_messages(
-            [
-                (
-                    "system",
-                    "You compare recipe ingredients and fridge inventory and return a shopping list JSON that matches the schema.",
-                ),
-                ("human", "Recipe: {recipe}\nFridge items: {fridge_items}"),
-            ]
+        self.system_prompt = (
+            "You compare recipe ingredients and fridge inventory and return a shopping list JSON that matches the schema."
         )
-        graph = StateGraph(ShoppingState)
-        graph.add_node("build", self._build_node)
-        graph.set_entry_point("build")
-        graph.add_edge("build", END)
-        self.graph = graph.compile()
 
-    def _build_node(self, state: ShoppingState) -> ShoppingState:
-        recipe = state["recipe"]
-        fridge_items = state["fridge_items"]
+    def build(
+        self,
+        recipe: dict,
+        fridge_items: List[dict],
+        *,
+        force_fallback: bool = False,
+    ) -> ShoppingListAgentResponse:
+        if force_fallback:
+            return _fallback_shopping(recipe, fridge_items)
         if structured_client.enabled:
-            prompt_value = self.prompt.invoke({"recipe": recipe, "fridge_items": fridge_items})
             response = structured_client.generate(
                 schema_name="shopping_agent_response",
                 response_model=ShoppingListAgentResponse,
-                system_prompt=prompt_value.messages[0].content,
-                user_prompt=prompt_value.messages[1].content,
+                system_prompt=self.system_prompt,
+                user_prompt=f"Recipe: {recipe}\nFridge items: {fridge_items}",
             )
             if response is not None:
-                return {"items": [item.model_dump() for item in response.items]}
-        fallback = _fallback_shopping(recipe, fridge_items)
-        return {"items": [item.model_dump() for item in fallback.items]}
-
-    def build(self, recipe: dict, fridge_items: List[dict]) -> ShoppingListAgentResponse:
-        result = self.graph.invoke({"recipe": recipe, "fridge_items": fridge_items})
-        return ShoppingListAgentResponse(items=[ShoppingItemAgentModel(**item) for item in result["items"]])
+                return response
+        return _fallback_shopping(recipe, fridge_items)

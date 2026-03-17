@@ -209,10 +209,16 @@ marimo/_static/
 marimo/_lsp/
 __marimo__/
 
-# /Archive
+# Local-only large/raw/generated assets
 /Raw
+/Archive/seed_backup_*/
 .DS_Store
+
+# One-off notebook builders and analysis outputs stay local.
 notebooks/
+
+# Seed outputs are generated locally and must not be pushed.
+# Keep only lightweight docs/placeholders under data/.
 data/*
 !data/README.md
 !data/.gitkeep

@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="hero">
+  <div>
+    <p class="eyebrow">RECIPE DETAIL</p>
+    <h1>{{ recipe.title }}</h1>
+    <p class="lede">{{ recipe.summary }}</p>
+  </div>
+  <div class="actions">
+    <a class="button" href="/">Home</a>
+    <a class="button" href="/fridge">Fridge</a>
+    <a class="button button-primary" href="/cook/{{ recipe.id }}">Start Cooking</a>
+  </div>
+</section>
+
+<div class="layout-two" style="margin-top: 24px;">
+  <section class="panel">
+    <p class="panel-title">INGREDIENTS</p>
+    <ul class="text-list">
+      {% for ingredient in recipe.required_ingredients %}
+      <li>
+        {{ ingredient.name }}
+        {% if ingredient.quantity is not none %} {{ ingredient.quantity }}{% endif %}
+        {% if ingredient.unit %} {{ ingredient.unit }}{% endif %}
+      </li>
+      {% endfor %}
+    </ul>
+  </section>
+
+  <section class="panel">
+    <p class="panel-title">SUMMARY</p>
+    <p class="muted">Cuisine: {{ recipe.cuisine }}</p>
+    <p class="muted">Servings: {{ recipe.servings }}</p>
+    <p class="muted">Total timer: {{ total_seconds }}s</p>
+    <div class="pill-row">
+      {% for ingredient in recipe.primary_ingredients %}
+      <span class="pill">{{ ingredient }}</span>
+      {% endfor %}
+    </div>
+  </section>
+</div>
+
+<section class="panel" style="margin-top: 24px;">
+  <p class="panel-title">SHOPPING LIST</p>
+  <ul class="plain-list">
+    {% for item in shopping_items %}
+    <li>{{ item.name }} / need {{ item.required_quantity or '-' }} {{ item.unit or '' }} / have {{ item.current_quantity or '-' }} / {{ item.reason }}</li>
+    {% else %}
+    <li>추가 구매 없이 조리 가능합니다.</li>
+    {% endfor %}
+  </ul>
+</section>
+
+<section class="panel" style="margin-top: 24px;">
+  <p class="panel-title">ETAPES</p>
+  <div class="step-list">
+    {% for step in steps %}
+    <article class="step-row">
+      <div class="step-meta">{{ step.step_number }}.</div>
+      <div>
+        <strong>{{ step.title }}</strong>
+        <div class="muted">{{ step.description }}</div>
+        <div class="muted">Tool: {{ step.tool }} / Timer: {{ step.estimated_seconds }}s</div>
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}
