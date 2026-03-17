@@ -1,0 +1,12 @@
+.git
+.gitignore
+.DS_Store
+.env
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+Archive/
+Raw/
+tests/

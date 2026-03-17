@@ -5,6 +5,11 @@ services:
       POSTGRES_DB: frigo
       POSTGRES_USER: frigo
       POSTGRES_PASSWORD: frigo
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U frigo -d frigo"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
     ports:
       - "5432:5432"
     volumes:
@@ -13,7 +18,8 @@ services:
   app:
     build: .
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     env_file:
       - .env
     environment:

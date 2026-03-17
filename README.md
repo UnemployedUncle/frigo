@@ -84,6 +84,22 @@ docker compose up --build
 - workflow 데이터: [data/workflows](/Users/yongsupyi/Desktop/frigo/data/workflows)
 - 상세 개발 기준: [prd.md](/Users/yongsupyi/Desktop/frigo/prd.md)
 
+## GitHub 업로드용 경량 구성
+
+이 저장소는 GitHub 업로드 시 코드 중심으로만 올리고, 대용량 raw 데이터와 seed 데이터는 로컬에만 두는 구성을 지원합니다.
+
+- `Raw/full_dataset.csv`는 로컬 전용입니다.
+- `data/recipes.jsonl`, `data/workflows/*.jsonl`, `data/staging/*`도 로컬 전용입니다.
+- GitHub에는 코드, 설정 파일, 문서, 로컬 데이터 안내 파일만 올립니다.
+
+로컬에서 다시 실행하려면 아래 경로를 직접 준비해야 합니다.
+
+- `Raw/full_dataset.csv`
+- `data/recipes.jsonl`
+- `data/workflows/*.jsonl`
+
+세부 경로 규칙은 [data/README.md](/Users/yongsupyi/Desktop/frigo/data/README.md)에 정리되어 있습니다.
+
 ## 향후 확장
 
 - 기능별 모델 다변화

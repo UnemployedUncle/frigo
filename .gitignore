@@ -211,4 +211,8 @@ __marimo__/
 
 # /Archive
 /Raw
-
+.DS_Store
+notebooks/
+data/*
+!data/README.md
+!data/.gitkeep

@@ -1,4 +1,0 @@
-{"recipe_id":"shrimp_egg_fried_rice","step_number":1,"title":"재료 준비","description":"새우는 손질하고 대파는 잘게 썰고 달걀은 풀어둡니다.","ingredients":["새우","대파","달걀"],"tool":"도마, 칼, 볼","estimated_minutes":5}
-{"recipe_id":"shrimp_egg_fried_rice","step_number":2,"title":"달걀 스크램블","description":"팬에 기름을 두르고 달걀을 넣어 살짝 익힌 뒤 덜어둡니다.","ingredients":["달걀","식용유"],"tool":"프라이팬, 뒤집개","estimated_minutes":3}
-{"recipe_id":"shrimp_egg_fried_rice","step_number":3,"title":"새우와 밥 볶기","description":"팬에 새우와 대파를 볶다가 밥을 넣고 고루 볶습니다.","ingredients":["새우","대파","밥"],"tool":"프라이팬, 뒤집개","estimated_minutes":5}
-{"recipe_id":"shrimp_egg_fried_rice","step_number":4,"title":"마무리","description":"스크램블한 달걀을 다시 넣고 섞은 뒤 간을 맞춥니다.","ingredients":["달걀","간장","후추"],"tool":"프라이팬, 뒤집개","estimated_minutes":2}

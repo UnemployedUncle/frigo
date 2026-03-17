@@ -1,4 +1,5 @@
 import json
+import sys
 from pathlib import Path
 
 
@@ -21,12 +22,24 @@ def validate_file(path: Path) -> None:
         raise ValueError(f"{path.name}: first step_number must be 1")
 
 
-def main() -> None:
-    workflow_dir = Path(__file__).resolve().parents[1] / "data" / "workflows"
-    files = sorted(workflow_dir.glob("*.jsonl"))
+def validate_directory(directory: Path) -> int:
+    if not directory.exists():
+        raise FileNotFoundError(f"Workflow directory not found: {directory}")
+    files = sorted(directory.glob("*.jsonl"))
+    if not files:
+        raise FileNotFoundError(f"No workflow files found in: {directory}")
     for file in files:
         validate_file(file)
-    print(f"Validated {len(files)} workflow file(s).")
+    return len(files)
+
+
+def main() -> None:
+    if len(sys.argv) > 1:
+        workflow_dir = Path(sys.argv[1]).resolve()
+    else:
+        workflow_dir = Path(__file__).resolve().parents[1] / "data" / "workflows"
+    count = validate_directory(workflow_dir)
+    print(f"Validated {count} workflow file(s).")
 
 
 if __name__ == "__main__":

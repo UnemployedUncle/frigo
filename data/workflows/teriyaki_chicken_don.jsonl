@@ -1,4 +1,0 @@
-{"recipe_id":"teriyaki_chicken_don","step_number":1,"title":"재료 준비","description":"닭다리살은 한입 크기로 자르고 양파는 채 썰어 준비합니다.","ingredients":["닭다리살","양파"],"tool":"도마, 칼","estimated_minutes":6}
-{"recipe_id":"teriyaki_chicken_don","step_number":2,"title":"닭고기 굽기","description":"팬에 닭다리살을 올려 겉면이 노릇해질 때까지 굽습니다.","ingredients":["닭다리살"],"tool":"프라이팬, 집게","estimated_minutes":6}
-{"recipe_id":"teriyaki_chicken_don","step_number":3,"title":"소스 넣고 조리기","description":"양파, 간장, 설탕을 넣고 중약불에서 소스가 자작해질 때까지 조립니다.","ingredients":["양파","간장","설탕"],"tool":"프라이팬, 뒤집개","estimated_minutes":5}
-{"recipe_id":"teriyaki_chicken_don","step_number":4,"title":"덮밥 완성","description":"그릇에 밥을 담고 조린 닭고기와 양파를 올립니다.","ingredients":["밥","닭다리살","양파"],"tool":"그릇, 숟가락","estimated_minutes":2}

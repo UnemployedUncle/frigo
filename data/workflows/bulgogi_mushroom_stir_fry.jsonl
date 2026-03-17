@@ -1,4 +1,0 @@
-{"recipe_id":"bulgogi_mushroom_stir_fry","step_number":1,"title":"재료 준비","description":"소고기는 먹기 좋게 정리하고 버섯과 양파를 썰어 준비합니다.","ingredients":["소고기","버섯","양파"],"tool":"도마, 칼","estimated_minutes":6}
-{"recipe_id":"bulgogi_mushroom_stir_fry","step_number":2,"title":"양념 만들기","description":"간장과 설탕을 섞어 기본 양념을 만듭니다.","ingredients":["간장","설탕"],"tool":"볼, 숟가락","estimated_minutes":2}
-{"recipe_id":"bulgogi_mushroom_stir_fry","step_number":3,"title":"고기 볶기","description":"팬에 소고기를 먼저 볶다가 양념을 넣고 익힙니다.","ingredients":["소고기","간장","설탕"],"tool":"프라이팬, 뒤집개","estimated_minutes":5}
-{"recipe_id":"bulgogi_mushroom_stir_fry","step_number":4,"title":"채소 넣기","description":"버섯과 양파를 넣고 함께 볶아 마무리합니다.","ingredients":["버섯","양파","참기름"],"tool":"프라이팬, 뒤집개","estimated_minutes":4}

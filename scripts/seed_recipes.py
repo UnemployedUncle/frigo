@@ -6,12 +6,23 @@ from psycopg import connect
 from app.config import settings
 
 
+def normalize_terms(values):
+    return list(dict.fromkeys(value.replace(" ", "").lower() for value in values if value))
+
+
 def main() -> None:
     data_path = Path(__file__).resolve().parents[1] / "data" / "recipes.jsonl"
+    if not data_path.exists():
+        raise FileNotFoundError(
+            "data/recipes.jsonl not found. Seed data is kept local; place local seed files under data/ before running seed."
+        )
     rows = [json.loads(line) for line in data_path.read_text().splitlines() if line.strip()]
 
     with connect(settings.database_url) as conn:
         with conn.cursor() as cur:
+            cur.execute("DELETE FROM recipe_search_terms")
+            cur.execute("DELETE FROM shopping_list_runs")
+            cur.execute("DELETE FROM recipes")
             for row in rows:
                 cur.execute(
                     """
@@ -45,6 +56,17 @@ def main() -> None:
                         "search_keywords": json.dumps(row["search_keywords"]),
                     },
                 )
+                primary_terms = set(normalize_terms(row["primary_ingredients"]))
+                for term in normalize_terms(row["search_keywords"]):
+                    cur.execute(
+                        """
+                        INSERT INTO recipe_search_terms (recipe_id, term, term_weight)
+                        VALUES (%s, %s, %s)
+                        ON CONFLICT (recipe_id, term) DO UPDATE SET
+                            term_weight = EXCLUDED.term_weight
+                        """,
+                        (row["id"], term, 2 if term in primary_terms else 1),
+                    )
         conn.commit()
     print(f"Seeded {len(rows)} recipe(s).")
 
