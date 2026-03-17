@@ -19,6 +19,14 @@ class StructuredOutputClient:
     def enabled(self) -> bool:
         return self._enabled
 
+    def _model_candidates(self) -> list[str]:
+        candidates = [settings.model_name, settings.fallback_model_name]
+        deduped: list[str] = []
+        for candidate in candidates:
+            if candidate and candidate not in deduped:
+                deduped.append(candidate)
+        return deduped
+
     def generate(
         self,
         *,
@@ -31,23 +39,29 @@ class StructuredOutputClient:
             return None
 
         schema = response_model.model_json_schema()
-        response = self._client.chat.completions.create(
-            model=settings.model_name,
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_prompt},
-            ],
-            response_format={
-                "type": "json_schema",
-                "json_schema": {
-                    "name": schema_name,
-                    "strict": True,
-                    "schema": schema,
-                },
-            },
-        )
-        message = response.choices[0].message.content or "{}"
-        return response_model.model_validate_json(message)
+        for model_name in self._model_candidates():
+            try:
+                response = self._client.chat.completions.create(
+                    model=model_name,
+                    messages=[
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": user_prompt},
+                    ],
+                    response_format={
+                        "type": "json_schema",
+                        "json_schema": {
+                            "name": schema_name,
+                            "strict": True,
+                            "schema": schema,
+                        },
+                    },
+                    extra_body={"reasoning": {"enabled": True}},
+                )
+                message = response.choices[0].message.content or "{}"
+                return response_model.model_validate_json(message)
+            except Exception:
+                continue
+        return None
 
 
 structured_client = StructuredOutputClient()

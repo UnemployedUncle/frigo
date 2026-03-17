@@ -50,12 +50,19 @@ DATABASE_URL=postgresql://frigo:frigo@localhost:5432/frigo
 
 현재 프로젝트의 모든 agent는 OpenRouter를 통해 동일한 모델을 사용합니다.
 
-- 냉장고 관리 agent: `nvidia/nemotron-3-super-120b-a12b:free`
-- 레시피 검색 plan agent: `nvidia/nemotron-3-super-120b-a12b:free`
-- 장보기 목록 agent: `nvidia/nemotron-3-super-120b-a12b:free`
-- workflow 구성 agent: `nvidia/nemotron-3-super-120b-a12b:free`
+- 기본 모델: `openai/gpt-oss-120b:free`
+- fallback 모델: `qwen/qwen3.5-122b-a10b`
 
-현재는 모든 agent가 `:free` 모델로 고정되어 같은 LLM을 바라봅니다. 이후 기능별로 다른 모델을 연결할 수 있도록 확장 가능한 구조를 전제로 합니다.
+현재는 모든 agent가 기본적으로 `gpt-oss-120b`를 사용하고, 실패 시 `Qwen3.5-122B-A10B`로 한 번 더 재시도합니다. 이후 기능별로 다른 모델을 연결할 수 있도록 확장 가능한 구조를 전제로 합니다.
+
+`.env`에는 짧은 모델명만 넣어도 됩니다.
+
+```env
+OPENROUTER_MODEL=gpt-oss-120b
+OPENROUTER_FALLBACK_MODEL=Qwen3.5-122B-A10B
+```
+
+앱 내부에서 각각 `openai/gpt-oss-120b:free`, `qwen/qwen3.5-122b-a10b`로 정규화합니다.
 
 OpenRouter 예시 호출 코드는 [openrouter_ex.py](/Users/yongsupyi/Desktop/frigo/Archive/openrouter_ex.py)에 정리되어 있습니다.
 
@@ -89,7 +96,7 @@ docker compose up --build
 이 저장소는 GitHub 업로드 시 코드 중심으로만 올리고, 대용량 raw 데이터와 seed 데이터는 로컬에만 두는 구성을 지원합니다.
 
 - `Raw/full_dataset.csv`는 로컬 전용입니다.
-- `data/recipes.jsonl`, `data/workflows/*.jsonl`, `data/staging/*`도 로컬 전용입니다.
+- `data/recipes.jsonl`, `data/workflows/*.jsonl`도 로컬 전용입니다.
 - GitHub에는 코드, 설정 파일, 문서, 로컬 데이터 안내 파일만 올립니다.
 
 로컬에서 다시 실행하려면 아래 경로를 직접 준비해야 합니다.
@@ -99,6 +106,8 @@ docker compose up --build
 - `data/workflows/*.jsonl`
 
 세부 경로 규칙은 [data/README.md](/Users/yongsupyi/Desktop/frigo/data/README.md)에 정리되어 있습니다.
+
+탐색용 노트북과 일회성 raw 정제 스크립트는 현재 [Archive](/Users/yongsupyi/Desktop/frigo/Archive) 아래로 옮겨 두었습니다.
 
 ## 향후 확장
 

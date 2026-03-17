@@ -170,6 +170,71 @@ class RecipeServiceTest(unittest.TestCase):
         self.assertEqual(plan_steps[0]["result_count"], 1)
         self.assertEqual([recipe["id"] for recipe in recommended], ["egg_drop_soup"])
 
+    def test_recommend_retries_with_six_ingredients_when_results_are_too_many(self):
+        recipes = []
+        for index in range(12):
+            recipes.append(
+                {
+                    "id": f"recipe_{index}",
+                    "title": f"Recipe {index}",
+                    "search_keywords": ["a", "b", "c", "d", "e"] + (["f"] if index < 3 else []),
+                }
+            )
+        selections = {
+            5: type(
+                "Selection",
+                (),
+                {
+                    "selected_ingredients": ["a", "b", "c", "d", "e"],
+                    "query_text": "a b c d e",
+                    "reason": "5-step",
+                },
+            )(),
+            6: type(
+                "Selection",
+                (),
+                {
+                    "selected_ingredients": ["a", "b", "c", "d", "e", "f"],
+                    "query_text": "a b c d e f",
+                    "reason": "6-step",
+                },
+            )(),
+            4: type(
+                "Selection",
+                (),
+                {
+                    "selected_ingredients": ["a", "b", "c", "d"],
+                    "query_text": "a b c d",
+                    "reason": "4-step",
+                },
+            )(),
+            3: type(
+                "Selection",
+                (),
+                {
+                    "selected_ingredients": ["a", "b", "c"],
+                    "query_text": "a b c",
+                    "reason": "3-step",
+                },
+            )(),
+        }
+        fridge_items = [
+            {"name": "a", "normalized_name": "a", "days_left": 1},
+            {"name": "b", "normalized_name": "b", "days_left": 1},
+            {"name": "c", "normalized_name": "c", "days_left": 1},
+            {"name": "d", "normalized_name": "d", "days_left": 1},
+            {"name": "e", "normalized_name": "e", "days_left": 1},
+            {"name": "f", "normalized_name": "f", "days_left": 1},
+        ]
+
+        service = self.make_service(recipes, selections)
+        plan_steps, recommended = service.recommend(fridge_items)
+
+        self.assertEqual(len(plan_steps), 2)
+        self.assertEqual(plan_steps[0]["next_step"], "결과가 많아 6개 조합으로 재검색")
+        self.assertEqual(plan_steps[1]["selected_ingredients"], ["a", "b", "c", "d", "e", "f"])
+        self.assertEqual(len(recommended), 5)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -32,9 +32,9 @@ def _render_dashboard(
 ):
     fridge_items = fridge_service.list_items()
     return templates.TemplateResponse(
+        request,
         "index.html",
         {
-            "request": request,
             "raw_text": raw_text,
             "fridge_items": fridge_items,
             "plan_steps": plan_steps or [],
@@ -42,6 +42,10 @@ def _render_dashboard(
             "shopping": shopping,
         },
     )
+
+
+def _raise_not_found(message: str) -> None:
+    raise HTTPException(status_code=404, detail=message)
 
 
 @app.get("/")
@@ -87,13 +91,19 @@ def create_shopping_list(payload: Dict[str, str]):
     recipe_id = payload.get("recipe_id")
     if not recipe_id:
         raise HTTPException(status_code=400, detail="recipe_id is required")
-    shopping = shopping_service.build_for_recipe(recipe_id, fridge_service.list_items())
+    try:
+        shopping = shopping_service.build_for_recipe(recipe_id, fridge_service.list_items())
+    except ValueError as exc:
+        _raise_not_found(str(exc))
     return ShoppingListResponse(recipe_id=shopping["recipe_id"], shopping_items=shopping["shopping_items"])
 
 
 @app.get("/recipes/{recipe_id}/workflow")
 def get_workflow(recipe_id: str):
-    workflow = workflow_service.get_workflow(recipe_id)
+    try:
+        workflow = workflow_service.get_workflow(recipe_id)
+    except ValueError as exc:
+        _raise_not_found(str(exc))
     return WorkflowResponse(recipe=workflow["recipe"], steps=workflow["steps"])
 
 
@@ -138,20 +148,26 @@ def ui_recommend(request: Request):
 @app.post("/ui/shopping")
 def ui_shopping(request: Request, recipe_id: str = Form(...)):
     plan_steps, recipes = recipe_service.recommend(fridge_service.list_items())
-    shopping = shopping_service.build_for_recipe(recipe_id, fridge_service.list_items())
+    try:
+        shopping = shopping_service.build_for_recipe(recipe_id, fridge_service.list_items())
+    except ValueError as exc:
+        _raise_not_found(str(exc))
     return _render_dashboard(request, plan_steps=plan_steps, recipes=recipes, shopping=shopping)
 
 
 @app.get("/ui/workflow/{recipe_id}")
 def ui_workflow(request: Request, recipe_id: str, step: int = 1):
-    workflow = workflow_service.get_workflow(recipe_id)
+    try:
+        workflow = workflow_service.get_workflow(recipe_id)
+    except ValueError as exc:
+        _raise_not_found(str(exc))
     steps = workflow["steps"]
     current_index = max(0, min(step - 1, len(steps) - 1))
     current_step = steps[current_index]
     return templates.TemplateResponse(
+        request,
         "workflow.html",
         {
-            "request": request,
             "recipe": workflow["recipe"],
             "current_step": current_step,
             "total_steps": len(steps),
