@@ -13,6 +13,11 @@ Required local paths for the current app:
 - `data/recipes.jsonl`: seed data for `scripts/seed_recipes.py`
 - `data/workflow_steps.jsonl`: workflow step seed for `scripts/validate_workflows.py` and DB loading
 
+Current runtime feedback data is stored in PostgreSQL tables, not in `data/` files:
+
+- `saved_recipes`
+- `cooking_sessions`
+
 Current runtime does not use `data/workflows/`.
 If that directory still exists locally from the old 100-recipe setup, it can be deleted.
 

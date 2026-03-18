@@ -13,6 +13,20 @@
 </section>
 
 <section class="panel" style="margin-top: 24px;">
+  <p class="panel-title">HOME SUMMARY</p>
+  <div class="stats-grid">
+    <article class="stat-card">
+      <div class="muted">Saved Recipes</div>
+      <div class="stat-value">{{ saved_count }}</div>
+    </article>
+    <article class="stat-card">
+      <div class="muted">Completed Recipes</div>
+      <div class="stat-value">{{ completed_count }}</div>
+    </article>
+  </div>
+</section>
+
+<section class="panel" style="margin-top: 24px;">
   <p class="panel-title">COOKING GRASS</p>
   {% for row in grass_rows %}
   <div class="grass-grid">
@@ -42,10 +56,16 @@
       </div>
       <div class="actions" style="margin-top: 14px;">
         <a class="button" href="/recipes/{{ recipe.id }}">View Recipe</a>
+        <form action="/recipes/{{ recipe.id }}/save" method="post">
+          <input type="hidden" name="redirect_to" value="/">
+          <button type="submit" class="{{ 'button-accent' if saved_map.get(recipe.id) else '' }}">
+            {{ "Unsave" if saved_map.get(recipe.id) else "Save" }}
+          </button>
+        </form>
       </div>
     </article>
     {% else %}
-    <p class="muted">냉장고에 맞는 추천 결과가 없습니다.</p>
+    <p class="muted">추천 결과가 없습니다.</p>
     {% endfor %}
   </div>
 </section>

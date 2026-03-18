@@ -1,7 +1,9 @@
+import json
 from datetime import date
 from typing import Any, Dict, List, Optional
+from urllib.parse import urlencode
 
-from fastapi import FastAPI, Form, HTTPException, Request
+from fastapi import FastAPI, Form, HTTPException, Query, Request
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -10,6 +12,7 @@ from app.schemas import RecommendResponse, ShoppingListResponse, WorkflowRespons
 from app.services.cooking_service import CookingService
 from app.services.fridge_service import FridgeService
 from app.services.recipe_service import RecipeService
+from app.services.saved_recipe_service import SavedRecipeService
 from app.services.shopping_service import ShoppingService
 from app.services.workflow_service import WorkflowService
 
@@ -22,6 +25,7 @@ recipe_service = RecipeService()
 shopping_service = ShoppingService()
 workflow_service = WorkflowService()
 cooking_service = CookingService()
+saved_recipe_service = SavedRecipeService()
 
 
 def _chunked(values: List[Dict[str, Any]], size: int) -> List[List[Dict[str, Any]]]:
@@ -79,21 +83,20 @@ def _build_fridge_layout(fridge_items: List[Dict[str, Any]]) -> Dict[str, List[D
 def _render_home(
     request: Request,
 ):
-    fridge_items = fridge_service.list_items()
     grass = cooking_service.completion_grass()
-    _, recipes = recipe_service.recommend(
-        fridge_items,
-        limit=8,
-        force_fallback=True,
-        minimum_overlap=1,
-        persist_plan=False,
-    )
+    summary = cooking_service.home_summary_counts()
+    saved_count = saved_recipe_service.count_saved()
+    recipes = recipe_service.list_random_recipes(limit=8)
+    saved_map = saved_recipe_service.saved_map(recipe["id"] for recipe in recipes)
     return templates.TemplateResponse(
         request,
         "index.html",
         {
             "grass_rows": _chunked(grass, 7),
+            "saved_count": saved_count,
+            "completed_count": summary.get("completed_count", 0),
             "recipes": recipes or [],
+            "saved_map": saved_map,
         },
     )
 
@@ -103,6 +106,7 @@ def _render_fridge(
     *,
     raw_text: str = "",
     parsed_preview_items: Optional[List[Dict[str, Any]]] = None,
+    selection_error: Optional[str] = None,
 ):
     fridge_items = fridge_service.list_items()
     return templates.TemplateResponse(
@@ -113,6 +117,43 @@ def _render_fridge(
             "parsed_preview_items": parsed_preview_items or [],
             "fridge_items": fridge_items,
             "fridge_layout": _build_fridge_layout(fridge_items),
+            "selection_error": selection_error,
+        },
+    )
+
+
+def _load_selected_fridge_items(item_ids: List[str]) -> List[Dict[str, Any]]:
+    fridge_items = fridge_service.list_items()
+    if not fridge_items:
+        raise ValueError("냉장고에 저장된 재료가 없습니다.")
+
+    if len(fridge_items) < 5:
+        return fridge_items
+
+    unique_ids = list(dict.fromkeys(item_ids))
+    if len(unique_ids) != 5:
+        raise ValueError("재료를 정확히 5개 선택해주세요.")
+
+    by_id = {item["id"]: item for item in fridge_items}
+    selected_items = [by_id[item_id] for item_id in unique_ids if item_id in by_id]
+    if len(selected_items) != 5:
+        raise ValueError("선택한 재료를 다시 확인해주세요.")
+    return selected_items
+
+
+def _render_selected_recommendations(
+    request: Request,
+    selected_items: List[Dict[str, Any]],
+):
+    _, recipes = recipe_service.recommend_from_selected_items(selected_items, limit=8)
+    saved_map = saved_recipe_service.saved_map(recipe["id"] for recipe in recipes)
+    return templates.TemplateResponse(
+        request,
+        "recommendations.html",
+        {
+            "selected_items": selected_items,
+            "recipes": recipes,
+            "saved_map": saved_map,
         },
     )
 
@@ -129,6 +170,17 @@ def home(request: Request):
 @app.get("/fridge")
 def fridge_page(request: Request):
     return _render_fridge(request)
+
+
+@app.get("/recommendations/fridge")
+def fridge_recommendations_page(request: Request, item_ids: List[str] = Query(default=[])):
+    if not item_ids:
+        return RedirectResponse("/fridge", status_code=303)
+    try:
+        selected_items = _load_selected_fridge_items(item_ids)
+    except ValueError:
+        return RedirectResponse("/fridge", status_code=303)
+    return _render_selected_recommendations(request, selected_items)
 
 
 @app.post("/fridge/parse")
@@ -162,6 +214,16 @@ def recommend_recipes():
     fridge_items = fridge_service.list_items()
     plan_steps, recipes = recipe_service.recommend(fridge_items)
     return RecommendResponse(plan_steps=plan_steps, recipes=recipes)
+
+
+@app.post("/recommendations/fridge")
+def fridge_recommendations_submit(request: Request, item_ids: List[str] = Form(default=[])):
+    try:
+        selected_items = _load_selected_fridge_items(item_ids)
+    except ValueError as exc:
+        return _render_fridge(request, selection_error=str(exc))
+    query_string = urlencode([("item_ids", item["id"]) for item in selected_items])
+    return RedirectResponse(f"/recommendations/fridge?{query_string}", status_code=303)
 
 
 @app.post("/shopping-list")
@@ -205,6 +267,7 @@ def ui_recipe_detail(request: Request, recipe_id: str):
             "steps": workflow["steps"],
             "shopping_items": shopping["shopping_items"],
             "total_seconds": sum(item["estimated_seconds"] for item in workflow["steps"]),
+            "is_saved": saved_recipe_service.is_saved(recipe_id),
         },
     )
 
@@ -250,6 +313,15 @@ def ui_delete_item(item_id: str):
 def ui_recommend(request: Request):
     return _render_home(request)
 
+
+@app.post("/recipes/{recipe_id}/save")
+def ui_toggle_saved_recipe(recipe_id: str, redirect_to: str = Form("/")):
+    try:
+        saved_recipe_service.toggle(recipe_id)
+    except ValueError as exc:
+        _raise_not_found(str(exc))
+    return RedirectResponse(redirect_to or "/", status_code=303)
+
 @app.get("/cook/{recipe_id}")
 def ui_cook(request: Request, recipe_id: str, step: int = 1):
     try:
@@ -258,7 +330,6 @@ def ui_cook(request: Request, recipe_id: str, step: int = 1):
         _raise_not_found(str(exc))
     steps = workflow["steps"]
     current_index = max(0, min(step - 1, len(steps) - 1))
-    current_step = steps[current_index]
     total_seconds = sum(item["estimated_seconds"] for item in steps)
     return templates.TemplateResponse(
         request,
@@ -266,12 +337,10 @@ def ui_cook(request: Request, recipe_id: str, step: int = 1):
         {
             "recipe": workflow["recipe"],
             "steps": steps,
-            "current_step": current_step,
             "total_steps": len(steps),
             "total_seconds": total_seconds,
-            "next_step": current_index + 2 if current_index < len(steps) - 1 else None,
-            "next_url": f"/cook/{recipe_id}?step={current_index + 2}" if current_index < len(steps) - 1 else None,
-            "is_last_step": current_index == len(steps) - 1,
+            "initial_step_index": current_index,
+            "steps_json": json.dumps(steps, ensure_ascii=False),
             "stop_url": f"/recipes/{recipe_id}",
         },
     )

@@ -74,6 +74,14 @@
     .actions { display: flex; gap: 10px; flex-wrap: wrap; }
     .muted { color: var(--muted); }
     .card-grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+    .stats-grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
+    .stat-card {
+      padding: 18px;
+      border-radius: 16px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.45);
+    }
+    .stat-value { font-size: 36px; color: var(--accent); }
     .pill-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
     .pill {
       display: inline-block;
@@ -118,6 +126,22 @@
     }
     textarea { min-height: 140px; resize: vertical; }
     .mini-form { display: grid; gap: 8px; grid-template-columns: 1.2fr 0.8fr 0.8fr 1fr auto auto; margin-top: 8px; }
+    .selection-grid {
+      display: grid;
+      gap: 10px;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      margin-top: 12px;
+    }
+    .selection-card {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.55);
+    }
+    .selection-card input { width: auto; margin-top: 4px; }
     .step-list { display: grid; gap: 12px; }
     .step-row {
       display: grid;
@@ -152,6 +176,7 @@
       transition: width 1s linear;
     }
     .timer-readout { font-size: 40px; margin: 6px 0 14px; }
+    .timer-subreadout { font-size: 16px; color: var(--muted); margin-bottom: 10px; }
     .cook-grid { display: grid; gap: 20px; grid-template-columns: 1.4fr 0.6fr; }
     @media (max-width: 900px) {
       .layout-two, .layout-three, .cook-grid, .fridge-grid { grid-template-columns: 1fr; }

@@ -18,18 +18,22 @@ class FakeFridgeService:
                 "unit": "bag",
                 "expiry_date": None,
                 "days_left": 1,
-            }
+            },
+            {"id": "item-2", "name": "Shrimp", "normalized_name": "shrimp", "quantity": 200.0, "unit": "g", "expiry_date": None, "days_left": 0},
+            {"id": "item-3", "name": "Butter", "normalized_name": "butter", "quantity": 1.0, "unit": "block", "expiry_date": None, "days_left": 4},
+            {"id": "item-4", "name": "Garlic", "normalized_name": "garlic", "quantity": 3.0, "unit": "cloves", "expiry_date": None, "days_left": 6},
+            {"id": "item-5", "name": "Onion", "normalized_name": "onion", "quantity": 1.0, "unit": "", "expiry_date": None, "days_left": 3},
         ]
         self.logged_texts = []
 
     def parse_and_store(self, raw_text):
         self.logged_texts.append(raw_text)
         created = {
-            "id": "item-2",
-            "name": "Shrimp",
-            "normalized_name": "shrimp",
-            "quantity": 200.0,
-            "unit": "g",
+            "id": "item-6",
+            "name": "Mushroom",
+            "normalized_name": "mushroom",
+            "quantity": 1.0,
+            "unit": "pack",
             "expiry_date": None,
             "days_left": 0,
         }
@@ -76,6 +80,12 @@ class FakeRecipeService:
                 "search_keywords": ["shrimp", "garlic"],
             }
         ]
+
+    def list_random_recipes(self, limit=8):
+        return self.recipes[:limit]
+
+    def recommend_from_selected_items(self, fridge_items, limit=8):
+        return self.plan_steps, self.recipes[:limit]
 
     def recommend(self, fridge_items, limit=5, force_fallback=False, minimum_overlap=None, persist_plan=True):
         return self.plan_steps, self.recipes
@@ -169,8 +179,32 @@ class FakeCookingService:
             }
         ]
 
+    def home_summary_counts(self):
+        return {"completed_count": 7}
+
     def complete_recipe(self, recipe_id, actual_seconds):
         self.completed.append((recipe_id, actual_seconds))
+
+
+class FakeSavedRecipeService:
+    def __init__(self):
+        self.saved = set()
+
+    def count_saved(self):
+        return len(self.saved)
+
+    def is_saved(self, recipe_id):
+        return recipe_id in self.saved
+
+    def saved_map(self, recipe_ids):
+        return {recipe_id: recipe_id in self.saved for recipe_id in recipe_ids}
+
+    def toggle(self, recipe_id):
+        if recipe_id in self.saved:
+            self.saved.remove(recipe_id)
+            return False
+        self.saved.add(recipe_id)
+        return True
 
 
 class AppRoutesTest(unittest.TestCase):
@@ -180,12 +214,14 @@ class AppRoutesTest(unittest.TestCase):
         self.shopping_service = FakeShoppingService()
         self.workflow_service = FakeWorkflowService()
         self.cooking_service = FakeCookingService()
+        self.saved_recipe_service = FakeSavedRecipeService()
         self.patchers = [
             patch.object(main_module, "fridge_service", self.fridge_service),
             patch.object(main_module, "recipe_service", self.recipe_service),
             patch.object(main_module, "shopping_service", self.shopping_service),
             patch.object(main_module, "workflow_service", self.workflow_service),
             patch.object(main_module, "cooking_service", self.cooking_service),
+            patch.object(main_module, "saved_recipe_service", self.saved_recipe_service),
         ]
         for patcher in self.patchers:
             patcher.start()
@@ -199,7 +235,7 @@ class AppRoutesTest(unittest.TestCase):
         response = self.client.post("/fridge/parse", json={"raw_text": "Spinach 1 bag tomorrow"})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()["source_text_id"], "log-1")
-        self.assertEqual(len(self.fridge_service.items), 2)
+        self.assertEqual(len(self.fridge_service.items), 6)
 
         ui_response = self.client.post("/ui/fridge/parse", data={"raw_text": "Shrimp 200g today"})
         self.assertEqual(ui_response.status_code, 200)
@@ -214,7 +250,7 @@ class AppRoutesTest(unittest.TestCase):
 
         response = self.client.delete("/fridge/items/item-1")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(self.fridge_service.items), 2)
+        self.assertEqual(len(self.fridge_service.items), 6)
 
     def test_recommend_shopping_and_workflow_routes(self):
         recommend_response = self.client.post("/recipes/recommend")
@@ -234,6 +270,9 @@ class AppRoutesTest(unittest.TestCase):
     def test_ui_workflow_navigation_and_not_found_handling(self):
         home_response = self.client.get("/")
         self.assertEqual(home_response.status_code, 200)
+        self.assertIn("HOME SUMMARY", home_response.text)
+        self.assertIn("Saved Recipes", home_response.text)
+        self.assertIn("Completed Recipes", home_response.text)
         self.assertIn("COOKING GRASS", home_response.text)
         self.assertNotIn("IN YOUR FRIDGE", home_response.text)
         self.assertNotIn("NATURAL INPUT", home_response.text)
@@ -242,17 +281,33 @@ class AppRoutesTest(unittest.TestCase):
         self.assertEqual(fridge_response.status_code, 200)
         self.assertIn("TEXT FRIDGE", fridge_response.text)
         self.assertIn("NATURAL INPUT", fridge_response.text)
+        self.assertIn("SELECT 5 INGREDIENTS FOR RECOMMENDATION", fridge_response.text)
+
+        bad_recommend_response = self.client.post("/recommendations/fridge", data={"item_ids": ["item-1"]})
+        self.assertEqual(bad_recommend_response.status_code, 200)
+        self.assertIn("정확히 5개 선택해주세요", bad_recommend_response.text)
 
         detail_response = self.client.get("/recipes/recipe-1")
         self.assertEqual(detail_response.status_code, 200)
         self.assertIn("RECIPE DETAIL", detail_response.text)
         self.assertIn("SHOPPING LIST", detail_response.text)
+        self.assertIn("Save", detail_response.text)
+
+        save_response = self.client.post("/recipes/recipe-1/save", data={"redirect_to": "/"}, follow_redirects=False)
+        self.assertEqual(save_response.status_code, 303)
+        self.assertTrue(self.saved_recipe_service.is_saved("recipe-1"))
+
+        recommend_response = self.client.get("/recommendations/fridge?item_ids=item-1&item_ids=item-2&item_ids=item-3&item_ids=item-4&item_ids=item-5")
+        self.assertEqual(recommend_response.status_code, 200)
+        self.assertIn("FRIDGE RECOMMENDATIONS", recommend_response.text)
+        self.assertIn("Garlic Shrimp Pasta", recommend_response.text)
 
         response = self.client.get("/cook/recipe-1?step=2")
         self.assertEqual(response.status_code, 200)
         self.assertIn("COOKING MODE", response.text)
-        self.assertIn("2. Saute", response.text)
+        self.assertIn("Total remaining", response.text)
         self.assertIn("Pause", response.text)
+        self.assertIn("Resume", response.text)
         self.assertIn("Stop", response.text)
 
         complete_response = self.client.post("/cook/recipe-1/complete", data={"actual_seconds": 13}, follow_redirects=False)

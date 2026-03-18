@@ -8,11 +8,14 @@ The current product direction is documented in [prd2.md](/Users/yongsupyi/Deskto
 
 Implemented now:
 
-- Text-first Home screen with cooking grass and 8 recipe recommendations
-- Separate Fridge screen with natural-language input, text fridge layout, and editable table
+- Text-first Home screen with cooking grass, `Saved Recipes`, `Completed Recipes`, and 8 random recipes
+- Separate Fridge screen with natural-language input, text fridge layout, editable table, and 5-item recommendation selection
+- Separate fridge-based recommendation screen using selected fridge items
 - Recipe detail screen with ingredients, shopping list, and full workflow
-- Cook mode with `estimated_seconds` countdown, auto-next-step, pause/resume/stop
+- Save / unsave feedback on recipe cards and detail
+- Cook mode with browser-managed `estimated_seconds` countdown, auto-next-step, pause/resume/stop
 - Completion logging in `cooking_sessions`
+- Saved recipe logging in `saved_recipes`
 - PostgreSQL-backed workflow storage
 - Large local seed loading from JSONL into Postgres
 
@@ -27,11 +30,12 @@ Explicitly out of scope now:
 
 The main user flow is:
 
-1. Open `/` to see cooking grass and recommended recipes.
-2. Open `/fridge` to add or edit fridge items.
-3. Open `/recipes/{recipe_id}` to review ingredients, shopping list, and workflow.
-4. Open `/cook/{recipe_id}` to run the timer-driven workflow.
-5. Complete the recipe and save a `cooking_sessions` record.
+1. Open `/` to see cooking grass, feedback counts, and 8 random recipes.
+2. Open `/fridge` to add or edit fridge items, or select 5 ingredients for fridge-based recommendation.
+3. Open `/recommendations/fridge` to review recipes based on selected fridge items.
+4. Open `/recipes/{recipe_id}` to review ingredients, shopping list, and workflow.
+5. Open `/cook/{recipe_id}` to run the timer-driven workflow.
+6. Save or complete the recipe; Home reflects both counts.
 
 ## Runtime Architecture
 
@@ -51,6 +55,7 @@ Storage:
 - `recipe_search_terms` is the search index for fast recommendation lookup
 - `fridge_items` stores current fridge inventory
 - `cooking_sessions` stores completed cooking runs
+- `saved_recipes` stores starred recipes
 
 Important change:
 
@@ -64,10 +69,13 @@ UI routes:
 
 - `GET /`: Home
 - `GET /fridge`: Fridge page
+- `GET /recommendations/fridge`: fridge-based recommendation screen
+- `POST /recommendations/fridge`: fridge recommendation submit
 - `POST /ui/fridge/parse`: fridge natural-language form submit
 - `POST /ui/fridge/items/{item_id}/update`: fridge item update
 - `POST /ui/fridge/items/{item_id}/delete`: fridge item delete
 - `GET /recipes/{recipe_id}`: recipe detail
+- `POST /recipes/{recipe_id}/save`: save toggle
 - `GET /cook/{recipe_id}`: cook mode
 - `POST /cook/{recipe_id}/complete`: save completion record
 
@@ -234,11 +242,12 @@ Recommendation no longer scans all recipes in Python.
 
 Current strategy:
 
-1. Normalize fridge terms
-2. Query `recipe_search_terms`
-3. Get candidate recipe IDs by overlap count
-4. Hydrate a small candidate set from `recipes`
-5. Re-rank with fridge urgency and return top results
+1. Home uses a lightweight random-8 repository path
+2. Fridge-based recommendation normalizes selected fridge terms
+3. It queries `recipe_search_terms`
+4. It gets candidate recipe IDs by overlap count
+5. It hydrates a small candidate set from `recipes`
+6. It re-ranks with fridge urgency and returns top results
 
 This is the current path that supports million-scale recipe data.
 

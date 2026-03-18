@@ -45,6 +45,22 @@ class RecipeService:
             return [fridge_item_count]
         return []
 
+    def list_random_recipes(self, limit: int = 8) -> List[Dict[str, Any]]:
+        return self.recipe_repo.list_random_recipes(limit)
+
+    def recommend_from_selected_items(
+        self,
+        fridge_items: List[Dict[str, Any]],
+        *,
+        limit: int = 8,
+    ) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
+        return self.recommend(
+            fridge_items,
+            limit=limit,
+            force_fallback=True,
+            persist_plan=False,
+        )
+
     def recommend(
         self,
         fridge_items: List[Dict[str, Any]],

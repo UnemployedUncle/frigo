@@ -8,7 +8,7 @@ class WorkflowRepository:
         with get_connection() as conn, conn.cursor() as cur:
             cur.execute(
                 """
-                SELECT recipe_id, step_number, title, description, ingredients, tool, estimated_seconds, estimated_minutes
+                SELECT recipe_id, step_number, title, description, ingredients, tool, estimated_seconds
                 FROM workflow_steps
                 WHERE recipe_id = %s
                 ORDER BY step_number

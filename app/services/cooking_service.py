@@ -30,6 +30,9 @@ class CookingService:
     def recent_completed(self, limit: int = 4) -> List[Dict[str, Any]]:
         return self.repo.list_recent(limit)
 
+    def home_summary_counts(self) -> Dict[str, int]:
+        return {"completed_count": self.repo.count_all()}
+
     def complete_recipe(self, recipe_id: str, actual_seconds: int) -> None:
         self.repo.insert_session(
             session_id=str(uuid4()),

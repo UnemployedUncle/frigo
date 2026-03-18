@@ -9,6 +9,10 @@
   <div class="actions">
     <a class="button" href="/">Home</a>
     <a class="button" href="/fridge">Fridge</a>
+    <form action="/recipes/{{ recipe.id }}/save" method="post">
+      <input type="hidden" name="redirect_to" value="/recipes/{{ recipe.id }}">
+      <button type="submit" class="{{ 'button-accent' if is_saved else '' }}">{{ "Unsave" if is_saved else "Save" }}</button>
+    </form>
     <a class="button button-primary" href="/cook/{{ recipe.id }}">Start Cooking</a>
   </div>
 </section>

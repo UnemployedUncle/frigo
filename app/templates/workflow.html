@@ -5,7 +5,7 @@
     <p class="eyebrow">COOKING MODE</p>
     <h1>{{ recipe.title }}</h1>
     <p class="lede">{{ recipe.summary }}</p>
-    <p class="muted">Step {{ current_step.step_number }} of {{ total_steps }} / Total timer {{ total_seconds }}s</p>
+    <p class="muted">Auto step flow / Total recipe timer {{ total_seconds }}s</p>
   </div>
   <div class="actions">
     <a class="button" href="/">Home</a>
@@ -16,20 +16,18 @@
 <div class="cook-grid" style="margin-top: 24px;">
   <section class="panel">
     <p class="panel-title">CURRENT STEP</p>
-    <div class="timer-readout"><span id="timer-value">{{ current_step.estimated_seconds }}</span>s</div>
+    <div class="timer-readout"><span id="step-timer-value">00</span>s</div>
+    <div class="timer-subreadout">Total remaining: <span id="total-timer-value">{{ total_seconds }}</span>s</div>
     <div class="timer-shell" aria-hidden="true">
       <div class="timer-fill" id="timer-fill"></div>
     </div>
     <div class="step-row" style="grid-template-columns: 1fr; padding-top: 18px;">
       <div>
-        <h2>{{ current_step.step_number }}. {{ current_step.title }}</h2>
-        <p>{{ current_step.description }}</p>
-        <p class="muted">Tool: {{ current_step.tool }}</p>
-        <div class="pill-row">
-          {% for ingredient in current_step.ingredients %}
-          <span class="pill">{{ ingredient }}</span>
-          {% endfor %}
-        </div>
+        <p class="muted">Step <span id="current-step-number">1</span> of {{ total_steps }}</p>
+        <h2 id="step-title"></h2>
+        <p id="step-description"></p>
+        <p class="muted">Tool: <span id="step-tool"></span></p>
+        <div class="pill-row" id="step-ingredients"></div>
       </div>
     </div>
 
@@ -38,7 +36,7 @@
       <button type="button" id="resume-button" style="display: none;">Resume</button>
       <a class="button button-accent" href="{{ stop_url }}">Stop</a>
       <form action="/cook/{{ recipe.id }}/complete" method="post" id="complete-form">
-        <input type="hidden" name="actual_seconds" value="{{ total_seconds }}">
+        <input type="hidden" name="actual_seconds" value="{{ total_seconds }}" id="actual-seconds-input">
         <button class="primary" type="submit">Complete Now</button>
       </form>
     </div>
@@ -46,10 +44,10 @@
 
   <section class="panel">
     <p class="panel-title">FULL WORKFLOW</p>
-    <div class="step-list">
+    <div class="step-list" id="workflow-list">
       {% for step in steps %}
-      <article class="step-row">
-        <div class="step-meta">{% if step.step_number == current_step.step_number %}&gt;{% else %}{{ step.step_number }}{% endif %}</div>
+      <article class="step-row" data-step-number="{{ step.step_number }}">
+        <div class="step-meta">{{ step.step_number }}</div>
         <div>
           <strong>{{ step.title }}</strong>
           <div class="muted">{{ step.tool }} / {{ step.estimated_seconds }}s</div>
@@ -62,37 +60,90 @@
 
 <script>
   (() => {
-    const initialSeconds = {{ current_step.estimated_seconds }};
-    const timerValue = document.getElementById("timer-value");
+    const steps = {{ steps_json | safe }};
+    const initialStepIndex = {{ initial_step_index }};
+    const fullTotalSeconds = {{ total_seconds }};
+    const stepTimerValue = document.getElementById("step-timer-value");
+    const totalTimerValue = document.getElementById("total-timer-value");
     const timerFill = document.getElementById("timer-fill");
+    const stepNumber = document.getElementById("current-step-number");
+    const stepTitle = document.getElementById("step-title");
+    const stepDescription = document.getElementById("step-description");
+    const stepTool = document.getElementById("step-tool");
+    const stepIngredients = document.getElementById("step-ingredients");
+    const workflowList = document.getElementById("workflow-list");
     const pauseButton = document.getElementById("pause-button");
     const resumeButton = document.getElementById("resume-button");
     const completeForm = document.getElementById("complete-form");
-    const nextUrl = {{ ('"' ~ next_url ~ '"') if next_url else 'null' }};
-    let remaining = initialSeconds;
+    const actualSecondsInput = document.getElementById("actual-seconds-input");
+
+    let currentStepIndex = Math.max(0, Math.min(initialStepIndex, steps.length - 1));
+    let remainingStepSeconds = steps[currentStepIndex].estimated_seconds;
+    let remainingTotalSeconds = steps.slice(currentStepIndex).reduce((sum, step) => sum + step.estimated_seconds, 0);
     let paused = false;
     let intervalId = null;
 
+    const elapsedSeconds = () => Math.max(1, fullTotalSeconds - remainingTotalSeconds);
+
+    const renderIngredients = (ingredients) => {
+      stepIngredients.innerHTML = "";
+      (ingredients || []).forEach((ingredient) => {
+        const pill = document.createElement("span");
+        pill.className = "pill";
+        pill.textContent = ingredient;
+        stepIngredients.appendChild(pill);
+      });
+    };
+
+    const highlightCurrentStep = () => {
+      workflowList.querySelectorAll(".step-row").forEach((row, index) => {
+        const marker = row.querySelector(".step-meta");
+        marker.textContent = index === currentStepIndex ? ">" : String(steps[index].step_number);
+      });
+    };
+
     const render = () => {
-      const ratio = initialSeconds === 0 ? 0 : remaining / initialSeconds;
-      timerValue.textContent = String(remaining).padStart(2, "0");
+      const currentStep = steps[currentStepIndex];
+      const ratio = currentStep.estimated_seconds === 0 ? 0 : remainingStepSeconds / currentStep.estimated_seconds;
+      stepNumber.textContent = String(currentStep.step_number);
+      stepTitle.textContent = `${currentStep.step_number}. ${currentStep.title}`;
+      stepDescription.textContent = currentStep.description;
+      stepTool.textContent = currentStep.tool;
+      stepTimerValue.textContent = String(remainingStepSeconds).padStart(2, "0");
+      totalTimerValue.textContent = String(remainingTotalSeconds).padStart(2, "0");
       timerFill.style.width = `${Math.max(0, ratio) * 100}%`;
+      actualSecondsInput.value = String(elapsedSeconds());
+      renderIngredients(currentStep.ingredients);
+      highlightCurrentStep();
+    };
+
+    const complete = () => {
+      actualSecondsInput.value = String(fullTotalSeconds);
+      completeForm.submit();
+    };
+
+    const moveNext = () => {
+      if (currentStepIndex >= steps.length - 1) {
+        window.clearInterval(intervalId);
+        complete();
+        return;
+      }
+      currentStepIndex += 1;
+      remainingStepSeconds = steps[currentStepIndex].estimated_seconds;
+      render();
     };
 
     const tick = () => {
       if (paused) {
         return;
       }
-      remaining -= 1;
-      if (remaining <= 0) {
-        remaining = 0;
+      remainingStepSeconds -= 1;
+      remainingTotalSeconds -= 1;
+      if (remainingStepSeconds <= 0) {
+        remainingStepSeconds = 0;
+        remainingTotalSeconds = Math.max(0, remainingTotalSeconds);
         render();
-        window.clearInterval(intervalId);
-        if (nextUrl) {
-          window.location.href = nextUrl;
-          return;
-        }
-        completeForm.submit();
+        moveNext();
         return;
       }
       render();

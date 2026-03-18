@@ -5,6 +5,12 @@ from app.db import get_connection
 
 
 class CookingSessionRepository:
+    def count_all(self) -> int:
+        with get_connection() as conn, conn.cursor() as cur:
+            cur.execute("SELECT COUNT(*)::int AS completion_count FROM cooking_sessions")
+            row = cur.fetchone()
+            return row["completion_count"] if row else 0
+
     def counts_by_date(self, start_date: date) -> List[Dict[str, Any]]:
         with get_connection() as conn, conn.cursor() as cur:
             cur.execute(
