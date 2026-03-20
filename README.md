@@ -1,67 +1,75 @@
 # Frigo
 
-Frigo is a text-first cooking tracker. The service takes fridge items from natural language, recommends recipes from the current fridge state, shows a per-recipe shopping list, and runs step-by-step cooking with an auto-advancing timer.
+Frigo is a text-first cooking tracker built around a simple flow: parse fridge items from natural language, recommend recipes from the current fridge state, show a per-recipe shopping list, and guide cooking with an auto-advancing timer.
 
-The current product direction is documented in [prd2.md](/Users/yongsupyi/Desktop/frigo/prd2.md). This README is focused on the codebase as it exists now.
+Current product and implementation references:
+
+- [prd3.md](./prd3.md): current product direction
+- [current-development-summary.md](./current-development-summary.md): code-based implementation summary
+- [prd3.5.md](./prd3.5.md): next cleanup and speed-focused refactoring plan
 
 ## Current Scope
 
 Implemented now:
 
-- Text-first Home screen with cooking grass, `Saved Recipes`, `Completed Recipes`, and 8 random recipes
-- Separate Fridge screen with natural-language input, text fridge layout, editable table, and 5-item recommendation selection
+- Home screen with `Saved Recipes`, `Completed Recipes`, cooking grass, and 8 random recipes
+- Separate Fridge screen with natural-language input, parsed preview, text fridge layout, editable table, and recommendation item selection
 - Separate fridge-based recommendation screen using selected fridge items
 - Recipe detail screen with ingredients, shopping list, and full workflow
-- Save / unsave feedback on recipe cards and detail
-- Cook mode with browser-managed `estimated_seconds` countdown, auto-next-step, pause/resume/stop
+- Save / unsave on recipe cards and recipe detail
+- Cook mode with browser-managed `estimated_seconds` countdown, auto-next-step, pause, resume, stop, and complete
 - Completion logging in `cooking_sessions`
 - Saved recipe logging in `saved_recipes`
-- PostgreSQL-backed workflow storage
-- Large local seed loading from JSONL into Postgres
+- PostgreSQL-backed recipe, workflow, fridge, and feedback storage
+- Local JSONL seed loading into Postgres
 
 Explicitly out of scope now:
 
-- Photo-based UI
+- Photo-based input or recommendation
 - Weekly meal planning
 - Advanced personalization
 - Partial cook-session resume
 
 ## Product Flow
 
-The main user flow is:
+Main UI flow:
 
-1. Open `/` to see cooking grass, feedback counts, and 8 random recipes.
-2. Open `/fridge` to add or edit fridge items, or select 5 ingredients for fridge-based recommendation.
+1. Open `/` to review feedback counts, recent cooking grass, and 8 random recipes.
+2. Open `/fridge` to add fridge items, review parsed results, edit stored values, and choose ingredients for fridge-based recommendation.
 3. Open `/recommendations/fridge` to review recipes based on selected fridge items.
 4. Open `/recipes/{recipe_id}` to review ingredients, shopping list, and workflow.
 5. Open `/cook/{recipe_id}` to run the timer-driven workflow.
-6. Save or complete the recipe; Home reflects both counts.
+6. Save or complete recipes; Home reflects both counts.
 
 ## Runtime Architecture
 
 Core services:
 
 - `FridgeService`: parses natural language and manages fridge items
-- `RecipeService`: recommends recipes using indexed ingredient overlap
+- `RecipeService`: serves random home recipes and fridge-based recommendation results
 - `ShoppingService`: computes missing ingredients from the current fridge
-- `WorkflowService`: reads workflow steps from the database
-- `CookingService`: records completed cooking sessions
+- `WorkflowService`: loads workflow steps from PostgreSQL
+- `CookingService`: records completed cooking sessions and builds cooking grass
+- `SavedRecipeService`: tracks saved recipes and save state
 
-Storage:
+Runtime principles:
 
-- PostgreSQL is the runtime database
-- `recipes` stores recipe metadata
-- `workflow_steps` stores all workflow rows
-- `recipe_search_terms` is the search index for fast recommendation lookup
-- `fridge_items` stores current fridge inventory
-- `cooking_sessions` stores completed cooking runs
-- `saved_recipes` stores starred recipes
+- PostgreSQL is the runtime source of truth
+- `workflow_steps` is the workflow source of truth at runtime
+- OpenRouter is optional
+- UI paths are fallback-first and should still work when OpenRouter is disabled or fails
 
-Important change:
+Runtime tables used by the current app:
 
-- Workflow execution no longer depends on `data/workflows/*.jsonl`
-- Runtime now reads from the `workflow_steps` table
-- If `data/workflows` still exists locally, it is legacy data and can be deleted
+- `recipes`
+- `workflow_steps`
+- `recipe_search_terms`
+- `fridge_items`
+- `fridge_input_logs`
+- `cooking_sessions`
+- `saved_recipes`
+- `shopping_list_runs`
+- `recipe_search_plans`
 
 ## Main Routes
 
@@ -69,15 +77,15 @@ UI routes:
 
 - `GET /`: Home
 - `GET /fridge`: Fridge page
-- `GET /recommendations/fridge`: fridge-based recommendation screen
-- `POST /recommendations/fridge`: fridge recommendation submit
-- `POST /ui/fridge/parse`: fridge natural-language form submit
+- `POST /ui/fridge/parse`: fridge natural-language submit
 - `POST /ui/fridge/items/{item_id}/update`: fridge item update
 - `POST /ui/fridge/items/{item_id}/delete`: fridge item delete
+- `POST /recommendations/fridge`: fridge recommendation submit
+- `GET /recommendations/fridge`: selected-item recommendation screen
 - `GET /recipes/{recipe_id}`: recipe detail
 - `POST /recipes/{recipe_id}/save`: save toggle
 - `GET /cook/{recipe_id}`: cook mode
-- `POST /cook/{recipe_id}/complete`: save completion record
+- `POST /cook/{recipe_id}/complete`: completion submit
 
 API-like routes still present:
 
@@ -89,34 +97,36 @@ API-like routes still present:
 - `POST /shopping-list`
 - `GET /recipes/{recipe_id}/workflow`
 
+Internal or cleanup-candidate routes:
+
+- `POST /ui/recommend`: currently redundant and a cleanup candidate tracked in `prd3.5.md`
+- `GET /ui/recipes/{recipe_id}` and `GET /ui/workflow/{recipe_id}`: redirect compatibility helpers
+
 ## Environment
 
-Copy `.env.example`:
-
-```bash
-cp .env.example .env
-```
+This repo currently does not include `.env.example`. Create `.env` manually for local runs.
 
 Current variables:
 
 ```env
-OPENROUTER_API_KEY=your_openrouter_api_key_here
+OPENROUTER_API_KEY=
 OPENROUTER_BASE_URL=https://openrouter.ai/api/v1
 OPENROUTER_MODEL=gpt-oss-120b
-OPENROUTER_FALLBACK_MODEL=Qwen3.5-122B-A10B
+OPENROUTER_FALLBACK_MODEL=qwen3.5-122b-a10b
 DATABASE_URL=postgresql://frigo:frigo@localhost:5432/frigo
+APP_ENV=development
 ```
 
-Model aliases are normalized in [config.py](/Users/yongsupyi/Desktop/frigo/app/config.py):
+Model aliases are normalized in `app/config.py`.
 
-- `gpt-oss-120b` -> `openai/gpt-oss-120b:free`
-- `Qwen3.5-122B-A10B` -> `qwen/qwen3.5-122b-a10b`
+Notes:
 
-OpenRouter is optional. If the API call fails or is disabled, the app falls back to deterministic local parsing/recommendation logic.
+- Docker Compose overrides `DATABASE_URL` inside the app container to `postgresql://frigo:frigo@db:5432/frigo`
+- OpenRouter is optional; fallback parsing and recommendation paths remain available
 
 ## Local Run
 
-Start the app and Postgres:
+Start Postgres and the app:
 
 ```bash
 docker compose up --build
@@ -138,85 +148,58 @@ After startup, the app is available at:
 
 - `http://localhost:8000`
 
-On container start, the app runs:
+Current startup expectations:
 
-1. DB migrations
-2. recipe/workflow seed load
-3. workflow validation
-4. FastAPI via Uvicorn
+1. `.env` is present
+2. local seed files exist under `data/`
+3. Postgres starts through Docker Compose
+4. the app connects to Postgres at container runtime
 
-## Seed and Data Files
+## Migrations and Seed
 
-This repository uses local-only seed files under `data/`.
+Apply SQL migrations:
 
-Current seed inputs:
-
-- [recipes.jsonl](/Users/yongsupyi/Desktop/frigo/data/recipes.jsonl)
-- [workflow_steps.jsonl](/Users/yongsupyi/Desktop/frigo/data/workflow_steps.jsonl)
-
-Current local artifacts:
-
-- [raw_seed_report.json](/Users/yongsupyi/Desktop/frigo/data/raw_seed_report.json)
-- [raw_seed_review.jsonl](/Users/yongsupyi/Desktop/frigo/data/raw_seed_review.jsonl)
-
-Current local generated full seed, based on `Raw/full_dataset.csv`:
-
-- raw rows scanned: `2,231,142`
-- accepted recipes: `2,231,111`
-- excluded rows: `31`
-- workflow steps: `14,631,812`
-
-DB load status currently verified:
-
-- `recipes`: `2,231,111`
-- `workflow_steps`: `14,631,812`
-- `recipe_search_terms`: `24,558,436`
-- `fridge_items`: `9`
-- `cooking_sessions`: `4`
-
-## Large Seed Workflow
-
-The one-off full-seed builder is:
-
-- [raw_full_seed_builder.ipynb](/Users/yongsupyi/Desktop/frigo/notebooks/raw_full_seed_builder.ipynb)
-
-It reads `Raw/full_dataset.csv` in streaming mode and generates:
-
-- `data/recipes.jsonl`
-- `data/workflow_steps.jsonl`
-- `data/raw_seed_review.jsonl`
-- `data/raw_seed_report.json`
-
-It also backs up the previous local seed under:
-
-- `Archive/seed_backup_*`
-
-This replaced the old “one workflow file per recipe” idea. For large data, workflows are stored as rows in `workflow_steps`, not as millions of files.
-
-## Loading Seed into Postgres
+```bash
+python scripts/migrate.py
+```
 
 Load local seed files into Postgres:
 
 ```bash
-docker compose run --rm -T -v "$PWD:/app" app python scripts/seed_recipes.py
+python scripts/seed_recipes.py
 ```
 
-What the seed script does:
-
-- clears runtime tables
-- loads `recipes.jsonl`
-- loads `workflow_steps.jsonl`
-- rebuilds `recipe_search_terms`
-- inserts demo fridge items
-- inserts demo completion records
-
-Workflow validation:
+Validate workflow seed shape:
 
 ```bash
 python scripts/validate_workflows.py
 ```
 
-This validates `data/workflow_steps.jsonl` by default. Directory-based validation remains only for explicit legacy use.
+What the seed script currently does:
+
+- clears runtime tables
+- loads `data/recipes.jsonl`
+- loads `data/workflow_steps.jsonl`
+- rebuilds `recipe_search_terms`
+- inserts demo fridge items
+- inserts demo completion records
+
+## Local Data Files
+
+This repository is intended to work without committing raw or seed data to GitHub.
+
+Current local-only seed inputs:
+
+- `data/recipes.jsonl`
+- `data/workflow_steps.jsonl`
+
+Useful local metadata if present:
+
+- `data/raw_seed_report.json`
+- `data/raw_seed_review.jsonl`
+- `data/README.md`
+
+If local seed files are missing, seed and workflow validation scripts fail with a local-data message.
 
 ## Natural Language Input
 
@@ -227,7 +210,7 @@ chicken 1 pack today, broccoli 1 bag tomorrow, onion 1, egg 2
 ```
 
 ```text
-시금치 한 봉지 이번 주말, 새우 200g 내일, 버터 1개
+si geum chi han bong ji i beon ju mal, saeu 200g naeil, beoteo 1gae
 ```
 
 ```text
@@ -238,68 +221,28 @@ The parser is most stable when ingredients are separated by commas.
 
 ## Recommendation Strategy
 
-Recommendation no longer scans all recipes in Python.
+Current recommendation behavior:
 
-Current strategy:
+1. Home uses a random-8 repository path
+2. Fridge recommendation uses selected fridge items from the UI
+3. selected ingredient names are normalized
+4. `recipe_search_terms` is queried for candidate recipe IDs
+5. a small candidate set is hydrated from `recipes`
+6. results are re-ranked with overlap count and fridge urgency
 
-1. Home uses a lightweight random-8 repository path
-2. Fridge-based recommendation normalizes selected fridge terms
-3. It queries `recipe_search_terms`
-4. It gets candidate recipe IDs by overlap count
-5. It hydrates a small candidate set from `recipes`
-6. It re-ranks with fridge urgency and returns top results
+This is the current path intended to support large recipe data without full-table Python scans.
 
-This is the current path that supports million-scale recipe data.
+## Legacy and Deprecated
 
-## Legacy Files
+These still exist for compatibility or cleanup tracking, but they are not primary runtime concepts:
 
-These remain in the repo or local workspace as legacy/reference material:
+- `workflow_file`: deprecated compatibility field on recipes
+- `estimated_minutes`: deprecated compatibility field on workflow rows
+- `recipe_search_plans`: persisted plan history exists, but it is not part of the main UI experience
+- `data/workflows/`: no longer used at runtime
 
-- `Archive/`: exploration docs, references, seed backups, old examples
-- `workflow_file`: deprecated recipe compatibility field
-- `estimated_minutes`: deprecated workflow compatibility field
+Archive and legacy references remain under `Archive/`.
 
-They are not part of the current main data flow unless explicitly used for reference.
+## Next Cleanup
 
-## GitHub Policy
-
-This repository is intentionally configured so large local data does not get pushed.
-
-Ignored local-only assets include:
-
-- `Raw/`
-- `data/*` except lightweight placeholders/docs
-- `notebooks/`
-- `Archive/seed_backup_*`
-
-That means generated seed outputs such as:
-
-- `data/recipes.jsonl`
-- `data/workflow_steps.jsonl`
-- `data/raw_seed_report.json`
-- `data/raw_seed_review.jsonl`
-
-stay local and are not uploaded to GitHub.
-
-## Tests and Verification
-
-Useful commands:
-
-```bash
-python scripts/validate_workflows.py
-```
-
-```bash
-docker compose run --rm -T -v "$PWD:/app" app python -m unittest discover -s tests -p 'test_*.py'
-```
-
-```bash
-docker exec frigo-db-1 psql -U frigo -d frigo -c "select count(*) from recipes;"
-```
-
-## References
-
-- Product spec: [prd2.md](/Users/yongsupyi/Desktop/frigo/prd2.md)
-- Earlier MVP spec: [prd.md](/Users/yongsupyi/Desktop/frigo/prd.md)
-- Text UI reference: [260317_textRepresentation.md](/Users/yongsupyi/Desktop/frigo/Archive/260317_textRepresentation.md)
-- Archived notes: [Archive](/Users/yongsupyi/Desktop/frigo/Archive)
+The next cleanup and speed-focused refactoring plan is tracked in [prd3.5.md](./prd3.5.md).

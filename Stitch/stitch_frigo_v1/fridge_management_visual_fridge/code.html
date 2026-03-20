@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..400;600&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#F26D21",
+              "on-surface": "#0f172a",
+              "surface": "#ffffff",
+              "surface-dim": "#f8fafc",
+              "outline": "#e2e8f0",
+              "error": "#ef4444",
+            },
+            fontFamily: {
+              "sans": ["Inter", "sans-serif"],
+            },
+            borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 200, 'GRAD' 0, 'opsz' 20;
+            vertical-align: middle;
+        }
+        body { 
+            font-family: 'Inter', sans-serif; 
+            -webkit-font-smoothing: antialiased; 
+            letter-spacing: -0.01em;
+        }
+        .thin-text { font-weight: 200; }
+        .fridge-shelf {
+            border-bottom: 1px solid #e2e8f0;
+            height: 120px;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        .fridge-shelf:hover {
+            background-color: rgba(242, 109, 33, 0.02);
+        }
+        .item-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #F26D21;
+        }
+    </style>
+</head>
+<body class="bg-white text-on-surface min-h-screen selection:bg-primary/10">
+<!-- Navigation -->
+<aside class="fixed left-0 top-0 h-full flex flex-col z-40 bg-white w-64 border-r border-slate-100">
+<div class="p-10">
+<div class="text-2xl thin-text tracking-tighter text-primary flex items-center gap-2">
+<span class="font-semibold italic">Frigo</span>
+<span class="w-1.5 h-1.5 bg-primary rounded-full"></span>
+</div>
+</div>
+<div class="px-6 mb-10">
+<div class="flex items-center gap-4 px-4 py-3 border-l-2 border-primary bg-slate-50/50">
+<img alt="User Profile" class="w-10 h-10 rounded-full grayscale hover:grayscale-0 transition-all duration-500 object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBr06ETMm2EpjjqzYT2X80B3bOjWp4ff0Xvsx44RV5eoFBvj3E1KgiF4XS4f12mcjL0-gRsqugkvB1YHXOzjjlRF2ELh6LxcsaMidM-cEJn-k85by5sh3hnTBGaR1C82-OLZ0yZ4Ui010XPYohZl4zhjm7l40YmaBNQp2elrks9erGk4niSP16OewgBzeqmYCo6v1095Z_oWQeCLo9GfpUOKn0MoiBPvwvmP8kq6phsvp6eNzuZVbUoliIUtE5wOHWU1Yp0ZynmYrQ"/>
+<div>
+<p class="text-[11px] font-semibold uppercase tracking-widest text-on-surface">Chef de Cuisine</p>
+<p class="text-[10px] text-slate-400">Inventory Control</p>
+</div>
+</div>
+</div>
+<nav class="flex flex-col px-4 gap-2">
+<a class="flex items-center gap-4 text-slate-400 px-6 py-3 hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">grid_view</span>
+<span class="text-[13px] thin-text uppercase tracking-[0.2em]">Overview</span>
+</a>
+<a class="flex items-center gap-4 text-primary px-6 py-3 border-r-2 border-primary bg-primary/5" href="#">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">kitchen</span>
+<span class="text-[13px] font-semibold uppercase tracking-[0.2em]">The Fridge</span>
+</a>
+<a class="flex items-center gap-4 text-slate-400 px-6 py-3 hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">query_stats</span>
+<span class="text-[13px] thin-text uppercase tracking-[0.2em]">Analytics</span>
+</a>
+</nav>
+</aside>
+<main class="ml-64 p-16">
+<header class="flex justify-between items-start mb-20">
+<div>
+<h1 class="text-4xl thin-text tracking-tight text-on-surface mb-2">Inventory Management</h1>
+<div class="flex items-center gap-3">
+<span class="h-px w-12 bg-primary/30"></span>
+<p class="text-[11px] uppercase tracking-[0.3em] text-slate-400">Real-time cold storage optimization</p>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<button class="relative group">
+<span class="material-symbols-outlined text-slate-400 group-hover:text-primary transition-colors">notifications</span>
+<span class="absolute -top-1 -right-1 w-1.5 h-1.5 bg-primary rounded-full"></span>
+</button>
+<button class="group">
+<span class="material-symbols-outlined text-slate-400 group-hover:text-primary transition-colors">tune</span>
+</button>
+</div>
+</header>
+<div class="grid grid-cols-12 gap-20">
+<!-- Visual Fridge Component -->
+<section class="col-span-12 xl:col-span-5">
+<div class="mb-8 flex justify-between items-end">
+<h2 class="text-[11px] font-semibold uppercase tracking-[0.3em] text-slate-400 italic">Visual Registry</h2>
+<span class="text-[10px] text-primary thin-text uppercase tracking-widest">Live Status: Nominal</span>
+</div>
+<div class="relative bg-white border border-slate-100 rounded-sm p-8 shadow-2xl shadow-slate-200/50">
+<!-- Abstract Fridge Structure -->
+<div class="border-2 border-slate-100 h-[600px] flex flex-col relative overflow-hidden">
+<!-- Shelf 1 -->
+<div class="fridge-shelf flex items-end px-8 pb-4">
+<div class="flex gap-4">
+<div class="w-12 h-16 bg-slate-50 border border-slate-100 rounded-sm flex items-center justify-center">
+<span class="item-dot"></span>
+</div>
+<div class="w-8 h-12 bg-primary/5 border border-primary/10 rounded-sm flex items-center justify-center">
+<span class="w-1.5 h-1.5 bg-primary/40 rounded-full"></span>
+</div>
+</div>
+<div class="absolute right-6 top-6 text-[10px] uppercase tracking-widest text-slate-300">Level 01: Dairy</div>
+</div>
+<!-- Shelf 2 -->
+<div class="fridge-shelf flex items-end px-8 pb-4">
+<div class="flex gap-3">
+<div class="w-16 h-10 bg-slate-50 border border-slate-100 rounded-sm"></div>
+<div class="w-10 h-10 bg-slate-50 border border-slate-100 rounded-sm"></div>
+<div class="w-20 h-8 bg-error/5 border border-error/10 rounded-sm flex items-center justify-center">
+<span class="w-1.5 h-1.5 bg-error/40 rounded-full animate-pulse"></span>
+</div>
+</div>
+<div class="absolute right-6 top-6 text-[10px] uppercase tracking-widest text-slate-300">Level 02: Proteins</div>
+</div>
+<!-- Shelf 3 -->
+<div class="fridge-shelf flex items-end px-8 pb-4">
+<div class="flex gap-4 items-end">
+<div class="w-6 h-20 bg-slate-50 border border-slate-100 rounded-sm"></div>
+<div class="w-6 h-16 bg-slate-50 border border-slate-100 rounded-sm"></div>
+<div class="w-6 h-24 bg-slate-50 border border-slate-100 rounded-sm"></div>
+</div>
+<div class="absolute right-6 top-6 text-[10px] uppercase tracking-widest text-slate-300">Level 03: Liquids</div>
+</div>
+<!-- Bin Area -->
+<div class="flex-grow flex items-end p-8 bg-slate-50/30">
+<div class="grid grid-cols-4 gap-4 w-full">
+<div class="h-20 bg-white border border-slate-100 rounded-sm"></div>
+<div class="h-20 bg-white border border-slate-100 rounded-sm"></div>
+<div class="h-20 bg-white border border-slate-100 rounded-sm"></div>
+<div class="h-20 bg-white border border-slate-100 rounded-sm"></div>
+</div>
+</div>
+<!-- Fridge Handle Detail -->
+<div class="absolute right-0 top-1/2 -translate-y-1/2 w-1 h-32 bg-slate-100"></div>
+</div>
+</div>
+<!-- Refined Input Area -->
+<div class="mt-12 group">
+<div class="flex items-center justify-between mb-4">
+<label class="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">Natural Language Entry</label>
+<span class="text-[9px] uppercase tracking-widest text-slate-300 italic">NLP Processor Active</span>
+</div>
+<div class="relative">
+<textarea class="w-full bg-white border-b border-slate-200 focus:border-primary focus:ring-0 px-0 py-4 text-lg thin-text placeholder:text-slate-200 resize-none h-20 transition-all outline-none" placeholder="Add ingredients: '3.5kg Flank Steak, 12 Duck Eggs...'"></textarea>
+<button class="absolute bottom-4 right-0 text-primary hover:tracking-widest transition-all flex items-center gap-2 group">
+<span class="text-[11px] font-semibold uppercase tracking-[0.2em]">Commit</span>
+<span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+</button>
+</div>
+</div>
+</section>
+<!-- High Precision Inventory List -->
+<section class="col-span-12 xl:col-span-7">
+<div class="flex justify-between items-end mb-8">
+<h2 class="text-[11px] font-semibold uppercase tracking-[0.3em] text-slate-400">Inventory Registry</h2>
+<div class="flex items-center gap-4">
+<span class="text-[10px] text-slate-300 uppercase tracking-widest">12 Records</span>
+<div class="flex border border-slate-100 rounded-sm">
+<button class="px-3 py-1 bg-slate-50 text-[10px] font-semibold text-primary uppercase">List</button>
+<button class="px-3 py-1 text-[10px] font-semibold text-slate-300 uppercase hover:text-slate-400">Map</button>
+</div>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full border-collapse">
+<thead>
+<tr class="border-b border-slate-100">
+<th class="py-6 text-left w-12"><div class="w-3 h-3 border border-slate-200 rounded-sm"></div></th>
+<th class="py-6 text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400 text-left">Ingredient</th>
+<th class="py-6 text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400 text-left">Quantity</th>
+<th class="py-6 text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400 text-left">Shelf Life</th>
+<th class="py-6 text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400 text-right">Action</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-50">
+<!-- Item 1 -->
+<tr class="group hover:bg-slate-50/30 transition-all">
+<td class="py-8"><div class="w-3 h-3 bg-primary rounded-sm"></div></td>
+<td class="py-8">
+<div class="flex flex-col">
+<span class="text-base thin-text text-on-surface">Whole Milk, Organic</span>
+<span class="text-[10px] uppercase tracking-widest text-slate-300 mt-1 italic">Dairy • Shelf 01</span>
+</div>
+</td>
+<td class="py-8">
+<span class="text-sm font-semibold text-on-surface tabular-nums">1.50 <span class="text-[11px] font-light text-slate-400 ml-1 uppercase">Liters</span></span>
+</td>
+<td class="py-8">
+<div class="flex items-center gap-3">
+<span class="text-sm thin-text text-slate-500 tabular-nums">OCT 24</span>
+<span class="h-1 w-8 bg-slate-100 rounded-full overflow-hidden">
+<span class="block h-full bg-primary w-3/4"></span>
+</span>
+</div>
+</td>
+<td class="py-8 text-right">
+<button class="text-slate-300 hover:text-primary transition-colors opacity-0 group-hover:opacity-100">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- Item 2 -->
+<tr class="group hover:bg-slate-50/30 transition-all">
+<td class="py-8"><div class="w-3 h-3 bg-primary rounded-sm"></div></td>
+<td class="py-8">
+<div class="flex flex-col">
+<span class="text-base thin-text text-on-surface">Greek Yogurt</span>
+<span class="text-[10px] uppercase tracking-widest text-slate-300 mt-1 italic">Dairy • Shelf 01</span>
+</div>
+</td>
+<td class="py-8">
+<span class="text-sm font-semibold text-on-surface tabular-nums">500 <span class="text-[11px] font-light text-slate-400 ml-1 uppercase">Grams</span></span>
+</td>
+<td class="py-8">
+<div class="flex items-center gap-3">
+<span class="text-sm font-semibold text-error tabular-nums uppercase">Critical</span>
+<span class="h-1 w-8 bg-slate-100 rounded-full overflow-hidden">
+<span class="block h-full bg-error w-full"></span>
+</span>
+</div>
+</td>
+<td class="py-8 text-right">
+<button class="text-slate-300 hover:text-primary transition-colors opacity-0 group-hover:opacity-100">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- Item 3 -->
+<tr class="group hover:bg-slate-50/30 transition-all">
+<td class="py-8"><div class="w-3 h-3 border border-slate-200 rounded-sm"></div></td>
+<td class="py-8">
+<div class="flex flex-col">
+<span class="text-base thin-text text-on-surface">Avocado, Hass</span>
+<span class="text-[10px] uppercase tracking-widest text-slate-300 mt-1 italic">Produce • Bin A</span>
+</div>
+</td>
+<td class="py-8">
+<span class="text-sm font-semibold text-on-surface tabular-nums">2.00 <span class="text-[11px] font-light text-slate-400 ml-1 uppercase">Units</span></span>
+</td>
+<td class="py-8">
+<div class="flex items-center gap-3">
+<span class="text-sm thin-text text-slate-500 tabular-nums">OCT 30</span>
+<span class="h-1 w-8 bg-slate-100 rounded-full overflow-hidden">
+<span class="block h-full bg-primary w-1/4"></span>
+</span>
+</div>
+</td>
+<td class="py-8 text-right">
+<button class="text-slate-300 hover:text-primary transition-colors opacity-0 group-hover:opacity-100">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+</div>
+</main>
+<!-- Refined Action Bar -->
+<footer class="fixed bottom-12 left-64 right-0 z-30 pointer-events-none px-16">
+<div class="max-w-4xl mx-auto flex justify-center">
+<div class="pointer-events-auto bg-white border border-slate-100 shadow-2xl px-10 py-4 flex items-center gap-10">
+<div class="flex items-center gap-4">
+<span class="text-[11px] font-semibold uppercase tracking-[0.3em] text-on-surface">02 Selected</span>
+<span class="h-3 w-px bg-slate-200"></span>
+</div>
+<div class="flex items-center gap-8">
+<button class="text-[11px] font-semibold uppercase tracking-[0.3em] text-primary hover:tracking-[0.4em] transition-all flex items-center gap-3">
+<span class="material-symbols-outlined text-[18px]">auto_awesome</span>
+                    Generate Recipe Strategy
+                </button>
+<button class="text-[10px] uppercase tracking-widest text-slate-300 hover:text-error transition-colors">
+                    Clear Selection
+                </button>
+</div>
+</div>
+</div>
+</footer>
+</body></html>

@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Frigo - Home Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..400;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..300,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#F26D21",
+              "surface": "#ffffff",
+              "surface-container": "#f8fafb",
+              "on-surface": "#1a1a1a",
+              "on-surface-variant": "#666666",
+              "outline": "#e5e7eb"
+            },
+            fontFamily: {
+              "sans": ["Inter", "sans-serif"]
+            },
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 200, 'GRAD' 0, 'opsz' 20;
+            vertical-align: middle;
+        }
+        body { font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; letter-spacing: 0.01em; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        h1, h2, h3 { letter-spacing: -0.03em; }
+        .thin-track { letter-spacing: 0.3em; }
+    </style>
+</head>
+<body class="bg-surface text-on-surface font-light">
+<!-- Navigation -->
+<aside class="fixed left-0 top-0 h-full flex flex-col p-12 z-40 bg-surface w-80 border-r border-outline/50">
+<div class="text-2xl font-extralight tracking-[0.25em] text-on-surface mb-20">FRIGO</div>
+<div class="flex items-center gap-5 mb-20">
+<div class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center overflow-hidden border border-outline/50 grayscale hover:grayscale-0 transition-all duration-500">
+<img class="w-full h-full object-cover" data-alt="User profile avatar portrait" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAfD3Xg_B9RYHKf2F7enX5wtkCWpQ0w2fl9MKkJ_skuuJ8IH6DanQ8Uu7Up5FT4_zVPqKQWV938fW-1N26qq5vlZDcWFMpMB_RfpIjA4QsuUs8GgJV_8z9Z1MpIxKPaFLr1VbpsT4TNKnjyCA8RdjJ2S4blBzwCsD3lbgNuMIc7YDA5MCVK34yNW11MKn46F8eT3Nd-3Xu_d-3k4NdsWuYa6-2mVLmkCV42v0aBNbrggOMmPKIbczNHU9dKUz2jpR0jpEByTmJKQto"/>
+</div>
+<div class="flex flex-col">
+<span class="text-[10px] font-semibold tracking-[0.2em] uppercase">Chef</span>
+<span class="text-[9px] uppercase tracking-[0.2em] text-on-surface-variant/70">Active Service</span>
+</div>
+</div>
+<nav class="flex flex-col gap-8 text-[11px] uppercase tracking-[0.25em]">
+<a class="flex items-center gap-5 text-primary" href="#">
+<span class="material-symbols-outlined text-xl" style="font-variation-settings: 'FILL' 1;">home</span>
+<span class="font-medium">Dashboard</span>
+</a>
+<a class="flex items-center gap-5 text-on-surface-variant hover:text-on-surface transition-colors" href="#">
+<span class="material-symbols-outlined text-xl">kitchen</span>
+<span>Inventory</span>
+</a>
+<a class="flex items-center gap-5 text-on-surface-variant hover:text-on-surface transition-colors" href="#">
+<span class="material-symbols-outlined text-xl">bookmark</span>
+<span>Library</span>
+</a>
+</nav>
+<div class="mt-auto pt-12 border-t border-outline/30">
+<button class="flex items-center gap-5 text-on-surface-variant hover:text-on-surface text-[11px] uppercase tracking-[0.25em] transition-colors">
+<span class="material-symbols-outlined text-xl">settings</span>
+<span>Settings</span>
+</button>
+</div>
+</aside>
+<!-- Content -->
+<main class="ml-80 min-h-screen p-20 lg:p-28 max-w-[1500px]">
+<header class="flex justify-between items-start mb-32">
+<div>
+<h1 class="text-6xl font-extralight text-on-surface mb-6">Good Morning, Chef.</h1>
+<p class="text-on-surface-variant text-[11px] uppercase tracking-[0.4em]">Operational Readiness Status: <span class="text-on-surface">Optimal</span></p>
+</div>
+<button class="px-10 py-3.5 border border-on-surface/20 text-on-surface text-[10px] uppercase tracking-[0.3em] hover:bg-on-surface hover:text-surface transition-all duration-500">
+            Open Fridge
+        </button>
+</header>
+<!-- Stats Section -->
+<section class="grid grid-cols-1 md:grid-cols-2 gap-20 mb-32 border-b border-outline/30 pb-32">
+<div>
+<span class="text-[10px] uppercase tracking-[0.4em] text-on-surface-variant mb-8 block">Saved Recipes</span>
+<div class="flex items-baseline gap-6">
+<span class="text-8xl font-extralight">42</span>
+<span class="text-primary text-[10px] uppercase tracking-[0.3em] font-bold">+3 new</span>
+</div>
+</div>
+<div>
+<span class="text-[10px] uppercase tracking-[0.4em] text-on-surface-variant mb-8 block">Completed Services</span>
+<div class="flex items-baseline gap-6">
+<span class="text-8xl font-extralight">128</span>
+<span class="text-on-surface-variant/60 text-[10px] uppercase tracking-[0.3em]">Top 5th Percentile</span>
+</div>
+</div>
+</section>
+<!-- Activity Section -->
+<section class="mb-32">
+<div class="flex justify-between items-baseline mb-12">
+<h2 class="text-[11px] uppercase tracking-[0.4em] font-medium">Activity Log</h2>
+<span class="text-on-surface-variant/50 text-[9px] uppercase tracking-[0.3em]">30-Day Period</span>
+</div>
+<div class="flex gap-2 min-w-max pb-6 overflow-x-auto no-scrollbar">
+<div class="grid grid-cols-12 gap-3">
+<script>
+                    for(let i=0; i<48; i++) {
+                        const opacity = Math.random() > 0.5 ? (Math.random() * 0.7 + 0.15) : 0.05;
+                        const isPrimary = Math.random() > 0.7;
+                        document.write(`<div class="w-8 h-8 border border-outline/30 transition-colors duration-700 hover:border-primary/50" style="background-color: ${isPrimary ? 'rgba(242, 109, 33, ' + opacity + ')' : 'rgba(26, 26, 26, ' + (opacity/4) + ')'}"></div>`);
+                    }
+                </script>
+</div>
+</div>
+</section>
+<!-- Recipes Section -->
+<section class="mb-32">
+<div class="flex justify-between items-baseline mb-16">
+<h2 class="text-[11px] uppercase tracking-[0.4em] font-medium text-on-surface">Curated Recommendations</h2>
+<a class="text-on-surface-variant text-[10px] uppercase tracking-[0.3em] border-b border-transparent hover:border-primary hover:text-primary transition-all pb-1" href="#">View Archive</a>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-20">
+<!-- Card 1 -->
+<div class="group cursor-pointer">
+<div class="aspect-[4/5] bg-surface-container mb-8 overflow-hidden border border-outline/30 relative">
+<div class="absolute top-6 right-6 z-10">
+<span class="material-symbols-outlined text-primary text-2xl" style="font-variation-settings: 'FILL' 1;">bookmark</span>
+</div>
+<div class="w-full h-full bg-neutral-50 flex items-center justify-center grayscale group-hover:grayscale-0 group-hover:scale-105 transition-all duration-1000">
+<span class="material-symbols-outlined text-7xl font-extralight text-on-surface-variant/20">restaurant</span>
+</div>
+</div>
+<span class="text-[9px] uppercase tracking-[0.3em] text-on-surface-variant/70 mb-3 block">15 MIN • 4 ELEMENTS</span>
+<h3 class="text-2xl font-extralight mb-5 group-hover:text-primary transition-colors duration-500">Roasted Tomato &amp; Basil Galette</h3>
+<p class="text-[11px] text-on-surface-variant/60 leading-relaxed uppercase tracking-[0.25em]">Tomato • Puff Pastry • Basil</p>
+</div>
+<!-- Card 2 -->
+<div class="group cursor-pointer">
+<div class="aspect-[4/5] bg-surface-container mb-8 overflow-hidden border border-outline/30 relative">
+<div class="absolute top-6 right-6 z-10">
+<span class="material-symbols-outlined text-on-surface-variant/30 group-hover:text-primary group-hover:fill-1 transition-all duration-500 text-2xl">bookmark</span>
+</div>
+<div class="w-full h-full bg-neutral-50 flex items-center justify-center grayscale group-hover:grayscale-0 group-hover:scale-105 transition-all duration-1000">
+<span class="material-symbols-outlined text-7xl font-extralight text-on-surface-variant/20">water_drop</span>
+</div>
+</div>
+<span class="text-[9px] uppercase tracking-[0.3em] text-on-surface-variant/70 mb-3 block">30 MIN • 6 ELEMENTS</span>
+<h3 class="text-2xl font-extralight mb-5 group-hover:text-primary transition-colors duration-500">Seared Scallops with Pea Purée</h3>
+<p class="text-[11px] text-on-surface-variant/60 leading-relaxed uppercase tracking-[0.25em]">Scallops • Sweet Peas • Mint</p>
+</div>
+<!-- Add Card -->
+<div class="aspect-[4/5] border border-dashed border-outline/50 flex flex-col items-center justify-center text-center p-12 group hover:border-on-surface transition-all duration-700 cursor-pointer">
+<span class="material-symbols-outlined text-4xl font-extralight text-on-surface-variant/30 mb-8 group-hover:text-primary transition-colors">add</span>
+<p class="text-[10px] uppercase tracking-[0.3em] text-on-surface-variant/60 leading-loose">Expand inventory to unlock further culinary paths</p>
+<button class="mt-8 text-[10px] font-bold text-primary uppercase tracking-[0.4em] border-b border-transparent hover:border-primary transition-all pb-1">Update Stock</button>
+</div>
+</div>
+</section>
+<!-- Footer Notice -->
+<footer class="mt-48 border-t border-outline/30 pt-24 text-center">
+<h4 class="text-4xl font-extralight italic mb-10 text-on-surface/80">The stove is cold.</h4>
+<p class="text-[11px] uppercase tracking-[0.35em] text-on-surface-variant/70 max-w-xl mx-auto leading-loose mb-16">
+            Inventory data suggests reduced operational activity. Re-sync smart appliance telemetry to refresh menu optimization.
+        </p>
+<div class="flex gap-16 justify-center">
+<button class="text-[10px] uppercase tracking-[0.4em] border-b border-primary pb-2 text-on-surface hover:text-primary transition-all duration-500">Add Inventory</button>
+<button class="text-[10px] uppercase tracking-[0.4em] border-b border-outline/50 pb-2 text-on-surface-variant hover:text-on-surface hover:border-on-surface transition-all duration-500">Browse History</button>
+</div>
+</footer>
+</main>
+<!-- Minimal Floating Action -->
+<div class="fixed bottom-14 right-14 z-50">
+<button class="w-14 h-14 bg-on-surface text-surface rounded-full shadow-2xl flex items-center justify-center hover:bg-primary transition-all duration-500 transform hover:scale-110 active:scale-95">
+<span class="material-symbols-outlined text-2xl font-light">add</span>
+</button>
+</div>
+</body></html>

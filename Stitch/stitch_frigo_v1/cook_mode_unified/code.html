@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Frigo - Cook Mode</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#F26D21",
+              "surface": "#ffffff",
+              "on-surface": "#1a1a1a",
+              "on-surface-variant": "#666666",
+              "outline-variant": "#e5e7eb"
+            },
+            fontFamily: {
+              "sans": ["Inter", "sans-serif"]
+            },
+          },
+        },
+      }
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 20;
+      }
+      body {
+        font-family: 'Inter', sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+      .instruction-text {
+        line-height: 1.15;
+        letter-spacing: -0.04em;
+      }
+    </style>
+</head>
+<body class="bg-surface text-on-surface min-h-screen flex flex-col overflow-hidden">
+<!-- Clean Header with Operational Elegance -->
+<header class="w-full px-16 py-12 flex justify-between items-start bg-surface z-10">
+<div class="flex items-center gap-6">
+<span class="text-xl font-light tracking-widest text-on-surface">FRIGO</span>
+<div class="h-4 w-[1px] bg-outline-variant"></div>
+<span class="text-[10px] font-bold tracking-[0.3em] uppercase text-on-surface-variant">Cook Mode</span>
+</div>
+<div class="text-right">
+<span class="text-[10px] font-bold tracking-[0.2em] uppercase text-on-surface-variant/60">Phase 03 — 07</span>
+</div>
+</header>
+<!-- Ultimate Focus Core with Light Typography -->
+<main class="flex-1 w-full px-16 flex flex-col items-center justify-center max-w-6xl mx-auto">
+<div class="w-full flex flex-col items-center text-center gap-20">
+<!-- Large Focus Instruction -->
+<section class="max-w-4xl">
+<h1 class="instruction-text text-[3.5rem] md:text-[5rem] font-extralight text-on-surface leading-tight">
+                    Increase heat to medium-high. Sear marinated protein for <span class="text-primary opacity-100">4 minutes.</span>
+</h1>
+</section>
+<!-- Minimalist Timer -->
+<div class="flex flex-col items-center">
+<div class="text-[10rem] font-extralight text-on-surface tabular-nums tracking-[-0.05em] leading-none mb-12">
+                    04:00
+                </div>
+<!-- Direct Controls with Orange Accents -->
+<div class="flex gap-12">
+<button class="group flex items-center gap-2 text-[10px] font-bold tracking-[0.25em] uppercase text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-base">pause</span>
+                        Pause
+                    </button>
+<button class="group flex items-center gap-2 text-[10px] font-bold tracking-[0.25em] uppercase text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-base">refresh</span>
+                        Reset
+                    </button>
+</div>
+</div>
+</div>
+</main>
+<!-- Operational Footer -->
+<footer class="w-full bg-surface py-12 px-16 flex items-center justify-between border-t border-outline-variant">
+<button class="flex items-center gap-3 group">
+<span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary transition-colors">arrow_back</span>
+<span class="text-[10px] font-bold uppercase tracking-[0.2em] text-on-surface-variant group-hover:text-primary transition-colors">Back</span>
+</button>
+<div class="flex items-center gap-12">
+<button class="text-[10px] font-bold uppercase tracking-[0.2em] text-on-surface-variant hover:text-primary transition-colors">
+                Exit Mode
+            </button>
+<button class="bg-primary text-white px-12 py-5 text-[10px] font-bold uppercase tracking-[0.3em] hover:bg-on-surface transition-all active:scale-95">
+                Step Complete
+            </button>
+</div>
+</footer>
+</body></html>

@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        body { font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 200, 'GRAD' 0, 'opsz' 20;
+        }
+        .step-number {
+            font-feature-settings: "tnum";
+            font-variant-numeric: tabular-nums;
+        }
+        h1, h2, h3 { letter-spacing: -0.02em; }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#F26D21",
+                        "surface": "#ffffff",
+                        "on-surface": "#1a1a1a",
+                        "on-surface-variant": "#666666",
+                        "outline": "#e5e7eb",
+                        "surface-container": "#f8fafb",
+                    },
+                    fontFamily: {
+                        "sans": ["Inter", "sans-serif"],
+                    },
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-surface text-on-surface">
+<!-- Sidebar Navigation -->
+<aside class="fixed left-0 top-0 h-full flex flex-col p-10 z-50 bg-surface w-72 border-r border-outline hidden xl:flex">
+<div class="text-2xl font-light tracking-widest text-on-surface mb-16 uppercase">Frigo</div>
+<div class="flex items-center gap-4 mb-16">
+<div class="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center overflow-hidden border border-outline">
+<img alt="User profile" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAfD3Xg_B9RYHKf2F7enX5wtkCWpQ0w2fl9MKkJ_skuuJ8IH6DanQ8Uu7Up5FT4_zVPqKQWV938fW-1N26qq5vlZDcWFMpMB_RfpIjA4QsuUs8GgJV_8z9Z1MpIxKPaFLr1VbpsT4TNKnjyCA8RdjJ2S4blBzwCsD3lbgNuMIc7YDA5MCVK34yNW11MKn46F8eT3Nd-3Xu_d-3k4NdsWuYa6-2mVLmkCV42v0aBNbrggOMmPKIbczNHU9dKUz2jpR0jpEByTmJKQto"/>
+</div>
+<div class="flex flex-col">
+<span class="text-xs font-semibold tracking-wide uppercase">Chef</span>
+<span class="text-[9px] uppercase tracking-[0.2em] text-on-surface-variant">Active Service</span>
+</div>
+</div>
+<nav class="flex flex-col gap-6 text-[11px] uppercase tracking-[0.2em]">
+<a class="flex items-center gap-4 text-on-surface-variant hover:text-on-surface transition-colors" href="#">
+<span class="material-symbols-outlined text-lg">home</span>
+<span>Dashboard</span>
+</a>
+<a class="flex items-center gap-4 text-primary font-bold" href="#">
+<span class="material-symbols-outlined text-lg" style="font-variation-settings: 'FILL' 1;">kitchen</span>
+<span>Inventory</span>
+</a>
+<a class="flex items-center gap-4 text-on-surface-variant hover:text-on-surface transition-colors" href="#">
+<span class="material-symbols-outlined text-lg">bookmark</span>
+<span>Library</span>
+</a>
+</nav>
+<div class="mt-auto pt-10 border-t border-outline">
+<button class="flex items-center gap-4 text-on-surface-variant hover:text-on-surface text-[11px] uppercase tracking-[0.2em] transition-colors">
+<span class="material-symbols-outlined text-lg">settings</span>
+<span>Settings</span>
+</button>
+</div>
+</aside>
+<!-- Top Navigation (Mobile/Tablet) -->
+<header class="xl:hidden bg-surface/80 backdrop-blur-md sticky top-0 z-40 border-b border-outline">
+<div class="flex justify-between items-center w-full px-8 h-16">
+<span class="text-xl font-light tracking-widest text-on-surface">FRIGO</span>
+<div class="flex items-center gap-4">
+<button class="material-symbols-outlined text-on-surface-variant">notifications</button>
+<button class="material-symbols-outlined text-on-surface-variant">account_circle</button>
+</div>
+</div>
+</header>
+<main class="xl:ml-72 min-h-screen p-8 md:p-16 lg:p-24 max-w-[1200px]">
+<!-- Header Section -->
+<section class="mb-32 text-left">
+<h1 class="text-5xl md:text-6xl font-extralight tracking-tight text-on-surface mb-12 leading-[1.1]">
+            Slow-Roasted Heirloom Tomato <br class="hidden md:block"/> &amp; Garlic Confit Risotto
+        </h1>
+<div class="flex flex-wrap gap-16 items-center border-b border-outline pb-16">
+<div class="flex flex-col gap-3">
+<span class="text-[10px] font-bold tracking-[0.3em] uppercase text-on-surface-variant">Prep Time</span>
+<span class="text-sm font-light uppercase tracking-widest">45 Minutes</span>
+</div>
+<div class="flex flex-col gap-3">
+<span class="text-[10px] font-bold tracking-[0.3em] uppercase text-on-surface-variant">Difficulty</span>
+<span class="text-sm font-light uppercase tracking-widest">Intermediate</span>
+</div>
+<div class="flex flex-col gap-3">
+<span class="text-[10px] font-bold tracking-[0.3em] uppercase text-on-surface-variant">Servings</span>
+<span class="text-sm font-light uppercase tracking-widest">4 Persons</span>
+</div>
+</div>
+<div class="mt-16 flex gap-8">
+<button class="px-12 py-4 bg-primary text-white font-bold text-[11px] tracking-[0.3em] uppercase hover:opacity-90 transition-all">
+                Begin Workflow
+            </button>
+<button class="px-12 py-4 border border-on-surface text-on-surface font-bold text-[11px] tracking-[0.3em] uppercase hover:bg-on-surface hover:text-surface transition-all">
+                Save Recipe
+            </button>
+</div>
+</section>
+<div class="space-y-32">
+<!-- Ingredients Section -->
+<section>
+<div class="flex items-center justify-between mb-16">
+<h2 class="text-[11px] font-bold tracking-[0.3em] uppercase text-on-surface">01 / Ingredients</h2>
+<span class="text-[9px] uppercase tracking-widest text-on-surface-variant">Inventory Check: Optimal</span>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-24">
+<div>
+<h3 class="text-[10px] font-bold mb-8 text-on-surface-variant uppercase tracking-[0.2em]">Pantry &amp; Fresh</h3>
+<div class="space-y-1">
+<div class="flex items-center justify-between py-4 border-b border-outline">
+<span class="text-[13px] font-light">Arborio rice</span>
+<span class="text-[11px] font-medium tracking-widest uppercase">2 cups</span>
+</div>
+<div class="flex items-center justify-between py-4 border-b border-outline">
+<span class="text-[13px] font-light">Heirloom tomatoes</span>
+<span class="text-[11px] font-medium tracking-widest uppercase">1.5 lb</span>
+</div>
+<div class="flex items-center justify-between py-4 border-b border-outline">
+<span class="text-[13px] font-light">Garlic</span>
+<span class="text-[11px] font-medium tracking-widest uppercase">1 head</span>
+</div>
+<div class="flex items-center justify-between py-4 border-b border-outline">
+<span class="text-[13px] font-light">Vegetable stock</span>
+<span class="text-[11px] font-medium tracking-widest uppercase">6 cups</span>
+</div>
+<div class="flex items-center justify-between py-4 border-b border-outline">
+<span class="text-[13px] font-light">Parmigiano Reggiano</span>
+<span class="text-[11px] font-medium tracking-widest uppercase">To taste</span>
+</div>
+</div>
+</div>
+<div class="bg-surface-container p-10 border border-outline">
+<div class="flex items-center justify-between mb-8">
+<h3 class="text-[10px] font-bold text-on-surface uppercase tracking-[0.2em]">Shopping List</h3>
+<span class="text-[9px] font-bold text-primary px-3 py-1 border border-primary/20 uppercase tracking-widest">3 missing</span>
+</div>
+<ul class="space-y-6 mb-12">
+<li class="flex items-center gap-4 text-[13px] font-light">
+<div class="w-4 h-4 border border-outline bg-white"></div>
+<span>Dry white wine (Sauvignon Blanc)</span>
+</li>
+<li class="flex items-center gap-4 text-[13px] font-light">
+<div class="w-4 h-4 border border-outline bg-white"></div>
+<span>Fresh Basil (1 bunch)</span>
+</li>
+<li class="flex items-center gap-4 text-[13px] font-light opacity-40 line-through decoration-primary">
+<div class="w-4 h-4 border border-outline bg-white"></div>
+<span>Arborio rice (refill)</span>
+</li>
+</ul>
+<button class="w-full py-4 border border-on-surface text-on-surface text-[10px] font-bold uppercase tracking-[0.3em] hover:bg-on-surface hover:text-surface transition-all">Add Elements to Cart</button>
+</div>
+</div>
+</section>
+<!-- Workflow Section -->
+<section>
+<div class="flex items-center justify-between mb-20">
+<h2 class="text-[11px] font-bold tracking-[0.3em] uppercase text-on-surface">02 / Cooking Process</h2>
+<span class="text-[9px] uppercase tracking-widest text-on-surface-variant">Step-by-Step Guidance</span>
+</div>
+<div class="space-y-24">
+<!-- Step 1 -->
+<div class="flex flex-col md:flex-row gap-12 md:gap-20 pb-16 border-b border-outline">
+<div class="md:w-16 shrink-0">
+<span class="step-number text-5xl font-extralight text-outline">01</span>
+</div>
+<div class="flex-1">
+<h3 class="text-2xl font-light mb-6">Confit the Garlic &amp; Tomatoes</h3>
+<p class="text-on-surface-variant leading-[1.8] text-[15px] font-light max-w-3xl mb-8 italic">Halve the heirloom tomatoes and peel garlic cloves. Submerge in olive oil with fresh thyme and slow-roast at 300°F (150°C) until jammy and fragrant.</p>
+<div class="flex gap-10">
+<div class="flex flex-col gap-2">
+<span class="text-[9px] font-bold uppercase tracking-[0.2em] text-on-surface-variant">Duration</span>
+<span class="text-[11px] uppercase tracking-widest">45 Minutes</span>
+</div>
+<div class="flex flex-col gap-2">
+<span class="text-[9px] font-bold uppercase tracking-[0.2em] text-on-surface-variant">Temp</span>
+<span class="text-[11px] uppercase tracking-widest">300°F</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Step 2 -->
+<div class="flex flex-col md:flex-row gap-12 md:gap-20 pb-16 border-b border-outline">
+<div class="md:w-16 shrink-0">
+<span class="step-number text-5xl font-extralight text-outline">02</span>
+</div>
+<div class="flex-1">
+<h3 class="text-2xl font-light mb-6">Prepare the Stock Base</h3>
+<p class="text-on-surface-variant leading-[1.8] text-[15px] font-light max-w-3xl">In a separate pot, bring vegetable stock to a low simmer. Maintaining a consistent temperature is key to achieving that signature creamy risotto texture.</p>
+</div>
+</div>
+<!-- Step 3 -->
+<div class="flex flex-col md:flex-row gap-12 md:gap-20 pb-16 border-b border-outline">
+<div class="md:w-16 shrink-0">
+<span class="step-number text-5xl font-extralight text-outline">03</span>
+</div>
+<div class="flex-1">
+<h3 class="text-2xl font-light mb-6">Toast &amp; Deglaze</h3>
+<p class="text-on-surface-variant leading-[1.8] text-[15px] font-light max-w-3xl">Sauté finely minced shallots in butter until translucent. Add Arborio rice and toast for 2 minutes. Deglaze with dry white wine, stirring until the liquid is fully absorbed.</p>
+</div>
+</div>
+<!-- Step 4 -->
+<div class="flex flex-col md:flex-row gap-12 md:gap-20">
+<div class="md:w-16 shrink-0">
+<span class="step-number text-5xl font-extralight text-outline">04</span>
+</div>
+<div class="flex-1">
+<h3 class="text-2xl font-light mb-6">The Gradual Stir</h3>
+<p class="text-on-surface-variant leading-[1.8] text-[15px] font-light max-w-3xl">Add warm stock one ladle at a time, stirring constantly. Wait until each ladle is absorbed before adding the next. Finish by folding in the tomato confit and freshly grated parmesan.</p>
+</div>
+</div>
+</div>
+</section>
+</div>
+<!-- Footer Notice -->
+<footer class="mt-48 border-t border-outline pt-20 text-center pb-32">
+<h4 class="text-3xl font-extralight italic mb-8">Service concludes with presentation.</h4>
+<p class="text-[11px] uppercase tracking-[0.3em] text-on-surface-variant max-w-lg mx-auto leading-loose mb-16">
+            Ensure plated elements meet the specified temperature standards. Garnish with fresh basil micro-greens for aromatic elevation.
+        </p>
+<div class="flex gap-16 justify-center">
+<button class="text-[10px] uppercase tracking-[0.3em] border-b border-on-surface pb-2 hover:text-primary hover:border-primary transition-all font-bold">Share Recipe</button>
+<button class="text-[10px] uppercase tracking-[0.3em] border-b border-outline pb-2 hover:border-on-surface transition-all font-bold">Print Details</button>
+</div>
+</footer>
+</main>
+<!-- Minimal Floating Action (Mobile Only) -->
+<div class="fixed bottom-8 right-8 z-50 xl:hidden">
+<button class="w-14 h-14 bg-on-surface text-surface rounded-full shadow-2xl flex items-center justify-center hover:bg-primary transition-colors duration-300">
+<span class="material-symbols-outlined text-xl">play_arrow</span>
+</button>
+</div>
+</body></html>

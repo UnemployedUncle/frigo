@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Frigo - Curated Recommendations</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#F26D21",
+              "surface": "#ffffff",
+              "surface-container": "#f8fafb",
+              "on-surface": "#1a1a1a",
+              "on-surface-variant": "#666666",
+              "outline": "#e5e7eb",
+              "error": "#ef4444",
+              "error-container": "#fef2f2"
+            },
+            fontFamily: {
+              "sans": ["Inter", "sans-serif"]
+            },
+            borderRadius: {"DEFAULT": "0px", "lg": "0px", "xl": "0px", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 200, 'GRAD' 0, 'opsz' 20;
+            vertical-align: middle;
+        }
+        body { font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        h1, h2, h3 { letter-spacing: -0.02em; }
+        .clinical-shadow { box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+    </style>
+</head>
+<body class="bg-surface text-on-surface selection:bg-primary/10 selection:text-primary">
+<!-- Navigation -->
+<aside class="fixed left-0 top-0 h-full hidden lg:flex flex-col p-10 z-40 bg-surface w-72 border-r border-outline">
+<div class="text-2xl font-light tracking-[0.2em] text-on-surface mb-16">FRIGO</div>
+<div class="flex items-center gap-4 mb-16">
+<div class="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center overflow-hidden border border-outline">
+<img class="w-full h-full object-cover" data-alt="User profile avatar portrait" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAfD3Xg_B9RYHKf2F7enX5wtkCWpQ0w2fl9MKkJ_skuuJ8IH6DanQ8Uu7Up5FT4_zVPqKQWV938fW-1N26qq5vlZDcWFMpMB_RfpIjA4QsuUs8GgJV_8z9Z1MpIxKPaFLr1VbpsT4TNKnjyCA8RdjJ2S4blBzwCsD3lbgNuMIc7YDA5MCVK34yNW11MKn46F8eT3Nd-3Xu_d-3k4NdsWuYa6-2mVLmkCV42v0aBNbrggOMmPKIbczNHU9dKUz2jpR0jpEByTmJKQto"/>
+</div>
+<div class="flex flex-col">
+<span class="text-xs font-semibold tracking-wide uppercase">Chef</span>
+<span class="text-[9px] uppercase tracking-[0.2em] text-on-surface-variant">Active Service</span>
+</div>
+</div>
+<nav class="flex flex-col gap-6 text-[11px] uppercase tracking-[0.2em]">
+<a class="flex items-center gap-4 text-on-surface-variant hover:text-on-surface transition-colors" href="#">
+<span class="material-symbols-outlined text-lg">home</span>
+<span>Dashboard</span>
+</a>
+<a class="flex items-center gap-4 text-primary font-bold" href="#">
+<span class="material-symbols-outlined text-lg" style="font-variation-settings: 'FILL' 1;">kitchen</span>
+<span>Fridge Results</span>
+</a>
+<a class="flex items-center gap-4 text-on-surface-variant hover:text-on-surface transition-colors" href="#">
+<span class="material-symbols-outlined text-lg">bookmark</span>
+<span>Library</span>
+</a>
+</nav>
+<div class="mt-auto pt-10 border-t border-outline">
+<button class="flex items-center gap-4 text-on-surface-variant hover:text-on-surface text-[11px] uppercase tracking-[0.2em] transition-colors">
+<span class="material-symbols-outlined text-lg">settings</span>
+<span>Settings</span>
+</button>
+</div>
+</aside>
+<!-- Top Bar (Mobile/Tablets) -->
+<header class="lg:hidden fixed top-0 left-0 right-0 z-50 bg-white border-b border-outline h-16 px-6 flex items-center justify-between">
+<div class="text-xl font-light tracking-[0.2em] text-on-surface">FRIGO</div>
+<button class="material-symbols-outlined">menu</button>
+</header>
+<main class="lg:ml-72 min-h-screen p-8 lg:p-24 max-w-[1400px]">
+<!-- Breadcrumbs -->
+<nav class="flex items-center gap-4 mb-16">
+<button class="flex items-center gap-2 text-on-surface-variant hover:text-primary text-[10px] uppercase tracking-[0.3em] transition-all">
+<span class="material-symbols-outlined text-sm">arrow_back</span>
+<span>Back to Fridge</span>
+</button>
+<span class="text-outline">/</span>
+<span class="text-on-surface-variant text-[10px] uppercase tracking-[0.3em]">Recommendations</span>
+</nav>
+<!-- Header Section -->
+<section class="mb-24">
+<h1 class="text-5xl lg:text-6xl font-extralight text-on-surface mb-8">Curated For You.</h1>
+<div class="flex items-center gap-6">
+<span class="text-[10px] uppercase tracking-[0.3em] text-on-surface-variant">Inventory Analysis:</span>
+<div class="flex flex-wrap gap-3">
+<span class="text-[10px] uppercase tracking-[0.2em] px-3 py-1 bg-surface-container border border-outline text-on-surface-variant">Tomato</span>
+<span class="text-[10px] uppercase tracking-[0.2em] px-3 py-1 bg-surface-container border border-outline text-on-surface-variant">Pasta</span>
+<span class="text-[10px] uppercase tracking-[0.2em] px-3 py-1 bg-surface-container border border-outline text-on-surface-variant">Basil</span>
+</div>
+</div>
+</section>
+<!-- Content Layout -->
+<div class="space-y-32">
+<!-- Featured Recommendation -->
+<article class="group">
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-16 items-center">
+<div class="lg:col-span-7">
+<div class="relative aspect-[16/10] overflow-hidden border border-outline bg-surface-container">
+<img alt="Classic Tomato Basil Pasta" class="w-full h-full object-cover opacity-90 group-hover:scale-105 transition-transform duration-[2000ms]" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAfD3Xg_B9RYHKf2F7enX5wtkCWpQ0w2fl9MKkJ_skuuJ8IH6DanQ8Uu7Up5FT4_zVPqKQWV938fW-1N26qq5vlZDcWFMpMB_RfpIjA4QsuUs8GgJV_8z9Z1MpIxKPaFLr1VbpsT4TNKnjyCA8RdjJ2S4blBzwCsD3lbgNuMIc7YDA5MCVK34yNW11MKn46F8eT3Nd-3Xu_d-3k4NdsWuYa6-2mVLmkCV42v0aBNbrggOMmPKIbczNHU9dKUz2jpR0jpEByTmJKQto"/>
+<div class="absolute top-8 left-8">
+<span class="px-5 py-2 bg-surface text-primary text-[10px] font-bold tracking-[0.3em] uppercase border border-outline shadow-sm">98% Match</span>
+</div>
+</div>
+</div>
+<div class="lg:col-span-5 flex flex-col justify-center">
+<div class="mb-10">
+<div class="flex items-center gap-2 text-primary text-[10px] uppercase tracking-[0.4em] font-bold mb-4">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">stars</span>
+                            Chef's Choice
+                        </div>
+<h2 class="text-4xl font-extralight text-on-surface leading-tight mb-8">Artisanal Pomodoro &amp; Hand-Torn Basil</h2>
+<div class="grid grid-cols-2 gap-12 border-y border-outline py-8">
+<div>
+<p class="text-[9px] uppercase tracking-[0.3em] text-on-surface-variant mb-2">Preparation</p>
+<p class="text-sm font-light text-on-surface">15 Minutes</p>
+</div>
+<div>
+<p class="text-[9px] uppercase tracking-[0.3em] text-on-surface-variant mb-2">Level</p>
+<p class="text-sm font-light text-on-surface">Easy</p>
+</div>
+</div>
+</div>
+<div class="mb-12">
+<p class="text-[9px] uppercase tracking-[0.3em] text-error font-bold mb-4">Missing Essentials</p>
+<div class="flex flex-wrap gap-3">
+<span class="text-[10px] uppercase tracking-[0.2em] px-4 py-2 bg-error-container text-error border border-error/10 italic">Parmesan Cheese</span>
+<span class="text-[10px] uppercase tracking-[0.2em] px-4 py-2 bg-error-container text-error border border-error/10 italic">Garlic</span>
+</div>
+</div>
+<button class="w-fit px-12 py-4 border border-on-surface text-on-surface text-[11px] uppercase tracking-[0.3em] hover:bg-on-surface hover:text-surface transition-all duration-300 flex items-center gap-4">
+                        Explore Recipe
+                        <span class="material-symbols-outlined text-lg">arrow_forward</span>
+</button>
+</div>
+</div>
+</article>
+<!-- Secondary Selections -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-24">
+<!-- Item 2 -->
+<article class="group">
+<div class="relative aspect-video overflow-hidden border border-outline bg-surface-container mb-10">
+<img alt="Caprese Skewers" class="w-full h-full object-cover opacity-90 group-hover:scale-105 transition-transform duration-[1500ms]" src="https://lh3.googleusercontent.com/aida-public/AB6AXuACsGJcie_CvI-g3VmKdh8djCDgJ9MYy8dY_pIb0vzNvpKqrAdsGWyCF-hG6mao8tDnoxcVVYyP0Ei0_yl7T1uPC9mF6uvpnEIaYwPN4I4azp4SsZNx0RSXkPvA6toBrOQyl5QmAA6XOx2TRFWHvXthwlAejlZXkk-6wF2JchA6qFNuAzEaEMuqFTYWwtQtDERhZnUAFSbqzKqoHAxN2RR_gWCjYeRbWRrft6-7fklcdi3pnIrybWAWtLiQppBbG6ppNvyE7UWse0w"/>
+<div class="absolute top-6 left-6">
+<span class="px-4 py-2 bg-surface text-on-surface-variant text-[9px] font-bold tracking-[0.3em] uppercase border border-outline shadow-sm">85% Match</span>
+</div>
+</div>
+<div class="space-y-6">
+<div>
+<span class="text-[9px] uppercase tracking-[0.3em] text-on-surface-variant block mb-2">Service: Cold Appetizer</span>
+<h3 class="text-2xl font-extralight text-on-surface mb-4 group-hover:text-primary transition-colors">Deconstructed Caprese Salad</h3>
+<p class="text-xs text-on-surface-variant leading-relaxed font-light">A fresh, elegant take on a summer classic using minimal heat and optimal plating.</p>
+</div>
+<div class="flex items-baseline justify-between border-t border-outline pt-6">
+<div class="flex gap-2 items-center">
+<span class="text-[9px] uppercase tracking-[0.3em] text-on-surface-variant">Needs:</span>
+<span class="text-[10px] text-on-surface-variant italic font-light">Mozzarella, Balsamic</span>
+</div>
+<button class="text-primary text-[10px] uppercase tracking-[0.3em] border-b border-primary pb-1 hover:border-b-2 transition-all">
+                            View Details
+                        </button>
+</div>
+</div>
+</article>
+<!-- Item 3 -->
+<article class="group">
+<div class="relative aspect-video overflow-hidden border border-outline bg-surface-container mb-10">
+<img alt="Basil Pesto Pasta" class="w-full h-full object-cover opacity-90 group-hover:scale-105 transition-transform duration-[1500ms]" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBzr7r_Vw8ShcTcNuIh8-INILm-SzZq--Dl8PYahMnode2oaiPECJHz6TTgthqxsUJIRitUGZLhj-IMSniafjpE5U7CxX2d8f4MUFB0GwctWW7F53MBjjxZBR91YSQNqjXJJ2DTpYIwt6iVVQ176eVVf_XB4lFK2kUuP3VcwC6mnOA7LZqvESP5N4VkTBvIPbt58Mk0S6w2fpWjvjUxlLj6xLVaw3B9sv6geShwAqveqqFXgoWxp75PNXQynO1bPr3ZMeCp1utm_Ug"/>
+<div class="absolute top-6 left-6">
+<span class="px-4 py-2 bg-surface text-on-surface-variant text-[9px] font-bold tracking-[0.3em] uppercase border border-outline shadow-sm">72% Match</span>
+</div>
+</div>
+<div class="space-y-6">
+<div>
+<span class="text-[9px] uppercase tracking-[0.3em] text-on-surface-variant block mb-2">Service: Hot Entrée</span>
+<h3 class="text-2xl font-extralight text-on-surface mb-4 group-hover:text-primary transition-colors">Fresh Basil Pesto Penne</h3>
+<p class="text-xs text-on-surface-variant leading-relaxed font-light">Robust and aromatic pesto made from your fresh garden harvest. High acidity profile.</p>
+</div>
+<div class="flex items-baseline justify-between border-t border-outline pt-6">
+<div class="flex gap-2 items-center">
+<span class="text-[9px] uppercase tracking-[0.3em] text-on-surface-variant">Needs:</span>
+<span class="text-[10px] text-on-surface-variant italic font-light">Pine Nuts, Penne</span>
+</div>
+<button class="text-primary text-[10px] uppercase tracking-[0.3em] border-b border-primary pb-1 hover:border-b-2 transition-all">
+                            View Details
+                        </button>
+</div>
+</div>
+</article>
+</div>
+<!-- Refine Prompt -->
+<div class="py-32 border-t border-outline text-center flex flex-col items-center">
+<h4 class="text-3xl font-extralight italic text-on-surface mb-8">The menu is static.</h4>
+<p class="text-[11px] uppercase tracking-[0.3em] text-on-surface-variant max-w-md mx-auto leading-loose mb-12">
+                Operational parameters can be adjusted to unlock alternative culinary paths. Refine inventory data to sync.
+            </p>
+<div class="flex gap-12">
+<button class="text-[10px] uppercase tracking-[0.4em] border-b border-on-surface pb-2 hover:text-primary hover:border-primary transition-all">Refine Fridge</button>
+<button class="text-[10px] uppercase tracking-[0.4em] border-b border-outline pb-2 hover:border-on-surface transition-all">Reset Search</button>
+</div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="lg:hidden fixed bottom-0 left-0 right-0 bg-surface/95 backdrop-blur-md h-20 flex items-center justify-around z-50 border-t border-outline">
+<button class="flex flex-col items-center gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined">home</span>
+<span class="text-[8px] font-bold tracking-[0.2em] uppercase">Home</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-primary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1">kitchen</span>
+<span class="text-[8px] font-bold tracking-[0.2em] uppercase">Fridge</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined">bookmark</span>
+<span class="text-[8px] font-bold tracking-[0.2em] uppercase">Library</span>
+</button>
+</nav>
+</body></html>
