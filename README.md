@@ -1,5 +1,16 @@
 # Frigo
 
+## Stitch Screenshots
+
+<p align="center">
+  <img src="./Stitch/Screenshot/1.png" alt="Frigo Stitch Screenshot 1" width="49%" />
+  <img src="./Stitch/Screenshot/2.png" alt="Frigo Stitch Screenshot 2" width="49%" />
+</p>
+<p align="center">
+  <img src="./Stitch/Screenshot/3.png" alt="Frigo Stitch Screenshot 3" width="49%" />
+  <img src="./Stitch/Screenshot/4.png" alt="Frigo Stitch Screenshot 4" width="49%" />
+</p>
+
 Frigo is a text-first cooking tracker built around a simple flow: parse fridge items from natural language, recommend recipes from the current fridge state, show a per-recipe shopping list, and guide cooking with an auto-advancing timer.
 
 Current product and implementation references:
