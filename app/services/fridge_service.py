@@ -49,6 +49,24 @@ class FridgeService:
     def list_items(self) -> List[Dict[str, Any]]:
         return self.repo.list_items()
 
+    def load_selected_items(self, item_ids: List[str]) -> List[Dict[str, Any]]:
+        fridge_items = self.list_items()
+        if not fridge_items:
+            raise ValueError("냉장고에 저장된 재료가 없습니다.")
+
+        if len(fridge_items) < 5:
+            return fridge_items
+
+        unique_ids = list(dict.fromkeys(item_ids))
+        if len(unique_ids) != 5:
+            raise ValueError("재료를 정확히 5개 선택해주세요.")
+
+        by_id = {item["id"]: item for item in fridge_items}
+        selected_items = [by_id[item_id] for item_id in unique_ids if item_id in by_id]
+        if len(selected_items) != 5:
+            raise ValueError("선택한 재료를 다시 확인해주세요.")
+        return selected_items
+
     def update_item(self, item_id: str, payload: Dict[str, Any]) -> None:
         expiry_date = payload.get("expiry_date")
         payload["normalized_name"] = payload["name"].replace(" ", "").lower()

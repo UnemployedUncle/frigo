@@ -1,99 +1,192 @@
 {% extends "base.html" %}
+{% import "_components.html" as ui %}
+{% block title %}Frigo Inventory{% endblock %}
 {% block content %}
-<section class="hero">
-  <div>
-    <p class="eyebrow">FRIDGE / TEXT INPUT</p>
-    <h1>Natural language fridge management.</h1>
-    <p class="lede">자연어 입력, 텍스트 냉장고, 실제 값 편집 테이블을 한 화면에서 관리합니다.</p>
-  </div>
-  <div class="actions">
-    <a class="button" href="/">Home</a>
-  </div>
-</section>
-
-<div class="layout-two" style="margin-top: 24px;">
-  <section class="panel">
-    <p class="panel-title">NATURAL INPUT</p>
-    <p class="muted">예: 시금치 1봉지 내일, 새우 200g 오늘, 버터 1개</p>
-    <form action="/ui/fridge/parse" method="post">
-      <textarea name="raw_text" placeholder="Type your fridge in natural language.">{{ raw_text or "" }}</textarea>
-      <div class="actions" style="margin-top: 12px;">
-        <button class="primary" type="submit">Parse And Store</button>
-      </div>
-    </form>
-    {% if parsed_preview_items %}
-    <div style="margin-top: 16px;">
-      <p class="panel-title">PARSED PREVIEW</p>
-      <ul class="plain-list">
-        {% for item in parsed_preview_items %}
-        <li>{{ item.name }} / {{ item.quantity or '-' }} {{ item.unit or '' }} / {{ item.expiry_date or 'no expiry' }}</li>
-        {% endfor %}
-      </ul>
+<div class="page-shell-wide" data-screen="fridge">
+  <section class="page-header surface-panel">
+    <div>
+      <span class="label-eyebrow">Fridge Management</span>
+      <h1 class="page-title">Inventory intake and recommendation control.</h1>
+      <p class="page-intro">This is the dense screen of the product: natural-language input, parsed preview, inventory editing, and recommendation selection all live here.</p>
     </div>
-    {% endif %}
+    <div class="page-actions">
+      <a class="button button-secondary" href="/">Home</a>
+    </div>
   </section>
 
-  <section class="panel">
-    <p class="panel-title">TEXT FRIDGE</p>
-    <div class="ascii-fridge">FRIGO
-DOOR / FRIDGE / FRIDGE2 / DOOR2 / FREEZER
-상태 표기: ! 임박 / * 주의 / + 여유 / · 날짜 없음</div>
-    <div class="fridge-grid">
+  <div class="preview-grid" id="fridge-entry">
+    <section class="surface-panel">
+      {{ ui.section_heading("Entry", "Natural language input", "Use one sentence or a comma-separated list. The parser still stores directly on submit.") }}
+      <form action="/ui/fridge/parse" method="post">
+        <label class="field-caption" for="raw_text">Input terminal</label>
+        <textarea class="textarea-field" id="raw_text" name="raw_text" placeholder="e.g. spinach 1 bag tomorrow, shrimp 200g today, butter 1">{{ raw_text or "" }}</textarea>
+        <div class="button-row" style="margin-top: 16px;">
+          <button class="button button-primary" type="submit">Parse And Store</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="surface-panel">
+      {{ ui.section_heading("Preview", "Latest parsed result", "The preview remains a post-submit confirmation, not a pre-save staging layer.") }}
+      {% if parsed_preview_items %}
+      <div class="preview-list">
+        {% for item in parsed_preview_items %}
+        <div class="preview-item">
+          <div>
+            <strong>{{ item.name }}</strong>
+            <div class="helper-text">{{ item.quantity or '-' }} {{ item.unit or '' }}</div>
+          </div>
+          {{ ui.status_badge(item.expiry_date or 'no expiry') }}
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="empty-panel">
+        {{ ui.status_badge("Awaiting input") }}
+        <p>예: 시금치 1봉지 내일, 새우 200g 오늘, 버터 1개</p>
+      </div>
+      {% endif %}
+    </section>
+  </div>
+
+  <section class="surface-panel" id="fridge-inventory">
+    {{ ui.section_heading("Registry", "Inventory table and selection flow", "Selection for recommendation now lives inside the main inventory surface.") }}
+    {% if selection_error %}
+    <div class="error-banner">{{ selection_error }}</div>
+    {% endif %}
+
+    <div class="inventory-layout">
+      <div class="inventory-head">
+        <span>Select</span>
+        <span>Ingredient</span>
+        <span>Qty</span>
+        <span>Unit</span>
+        <span>Expiry</span>
+        <span>Status</span>
+        <span>Actions</span>
+      </div>
+
+      <div class="inventory-table">
+        {% for item in fridge_items %}
+        <div class="inventory-row">
+          <div class="inventory-select">
+            <input data-selection-box type="checkbox" name="item_ids" value="{{ item.id }}" form="recommend-form">
+          </div>
+
+          <form class="inventory-form-grid" action="/ui/fridge/items/{{ item.id }}/update" method="post">
+            <div class="inventory-primary">
+              <label class="field-caption" for="item-name-{{ item.id }}">Ingredient</label>
+              <input class="text-field" id="item-name-{{ item.id }}" name="name" value="{{ item.name }}">
+            </div>
+
+            <div>
+              <label class="field-caption" for="item-quantity-{{ item.id }}">Quantity</label>
+              <input class="text-field" id="item-quantity-{{ item.id }}" name="quantity" value="{{ item.quantity or '' }}" placeholder="qty">
+            </div>
+
+            <div>
+              <label class="field-caption" for="item-unit-{{ item.id }}">Unit</label>
+              <input class="text-field" id="item-unit-{{ item.id }}" name="unit" value="{{ item.unit or '' }}" placeholder="unit">
+            </div>
+
+            <div>
+              <label class="field-caption" for="item-expiry-{{ item.id }}">Expiry</label>
+              <input class="date-field" id="item-expiry-{{ item.id }}" name="expiry_date" type="date" value="{{ item.expiry_date or '' }}">
+            </div>
+
+            <div class="inventory-status">
+              <span class="field-caption">Status</span>
+              {% if item.days_left is none %}
+              {{ ui.status_badge("Open") }}
+              <span class="helper-text">날짜 없음</span>
+              {% elif item.days_left <= 1 %}
+              {{ ui.status_badge("Critical", "danger") }}
+              <span class="helper-text">D-{{ item.days_left }}</span>
+              {% elif item.days_left <= 3 %}
+              {{ ui.status_badge("Soon", "warning") }}
+              <span class="helper-text">D-{{ item.days_left }}</span>
+              {% else %}
+              {{ ui.status_badge("Stable", "success") }}
+              <span class="helper-text">D-{{ item.days_left }}</span>
+              {% endif %}
+            </div>
+
+            <div class="inventory-actions">
+              <button class="button button-secondary" type="submit">Save</button>
+              <button class="button button-danger" formaction="/ui/fridge/items/{{ item.id }}/delete" formmethod="post">Delete</button>
+            </div>
+          </form>
+        </div>
+        {% else %}
+        <div class="empty-panel">
+          {{ ui.status_badge("No items", "warning") }}
+          <p>아직 저장된 재료가 없습니다.</p>
+        </div>
+        {% endfor %}
+      </div>
+
+      <form id="recommend-form" action="/recommendations/fridge" method="post"></form>
+
+      <div class="sticky-action-bar">
+        <div>
+          <div class="button-row" style="margin-bottom: 10px;">
+            <span class="counter-pill"><span id="selection-count">0</span> selected</span>
+            {% if fridge_items|length >= 5 %}
+            {{ ui.status_badge("Select exactly 5", "primary") }}
+            {% else %}
+            {{ ui.status_badge("Fewer than 5 uses all items", "success") }}
+            {% endif %}
+          </div>
+          <div class="helper-text">추천 선택은 inventory table에서 직접 진행합니다.</div>
+        </div>
+        <button class="button button-primary" id="selection-submit" type="submit" form="recommend-form">Recommend From Selected Ingredients</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="surface-panel ascii-fridge">
+    {{ ui.section_heading("Spatial view", "ASCII fridge as a secondary reference", "The visual fridge remains available, but it no longer competes with the main edit surface.") }}
+    <div class="hero-note">FRIGO · DOOR / FRIDGE / FRIDGE2 / DOOR2 / FREEZER · ! critical / * soon / + stable / · open</div>
+    <div class="fridge-bins">
       {% for bin_name, items in fridge_layout.items() %}
       <article class="fridge-bin">
         <h3>{{ bin_name }}</h3>
-        <ul>
+        <div class="bin-list">
           {% for item in items %}
-          <li>{{ item.status }} {{ item.label }}</li>
+          <div class="bin-item">
+            <span>{{ item.status }} {{ item.name }}</span>
+            <span class="helper-text">{{ item.label }}</span>
+          </div>
           {% else %}
-          <li class="muted">empty</li>
+          <div class="empty-panel">
+            <p>empty</p>
+          </div>
           {% endfor %}
-        </ul>
+        </div>
       </article>
       {% endfor %}
     </div>
   </section>
 </div>
 
-<section class="panel" style="margin-top: 24px;">
-  <p class="panel-title">SELECT 5 INGREDIENTS FOR RECOMMENDATION</p>
-  <p class="muted">냉장고 재료가 5개 이상이면 정확히 5개를 선택합니다. 5개 미만이면 전체를 자동 사용합니다.</p>
-  {% if selection_error %}
-  <p class="muted" style="color: var(--accent-2);">{{ selection_error }}</p>
-  {% endif %}
-  <form action="/recommendations/fridge" method="post">
-    <div class="selection-grid">
-      {% for item in fridge_items %}
-      <label class="selection-card">
-        <input type="checkbox" name="item_ids" value="{{ item.id }}">
-        <span>
-          <strong>{{ item.name }}</strong><br>
-          <span class="muted">{{ item.quantity or '-' }} {{ item.unit or '' }} / {{ item.expiry_date or 'no expiry' }}</span>
-        </span>
-      </label>
-      {% else %}
-      <p class="muted">추천에 사용할 냉장고 재료가 없습니다.</p>
-      {% endfor %}
-    </div>
-    <div class="actions" style="margin-top: 12px;">
-      <button class="primary" type="submit">Recommend From Selected Ingredients</button>
-    </div>
-  </form>
-</section>
+<script>
+  (() => {
+    const boxes = Array.from(document.querySelectorAll("[data-selection-box]"));
+    const count = document.getElementById("selection-count");
+    const submitButton = document.getElementById("selection-submit");
 
-<section class="panel" style="margin-top: 24px;">
-  <p class="panel-title">EDIT TABLE</p>
-  {% for item in fridge_items %}
-  <form class="mini-form" action="/ui/fridge/items/{{ item.id }}/update" method="post">
-    <input name="name" value="{{ item.name }}">
-    <input name="quantity" value="{{ item.quantity or '' }}" placeholder="qty">
-    <input name="unit" value="{{ item.unit or '' }}" placeholder="unit">
-    <input name="expiry_date" type="date" value="{{ item.expiry_date or '' }}">
-    <button type="submit">Save</button>
-    <button formaction="/ui/fridge/items/{{ item.id }}/delete" formmethod="post" class="button-accent">Delete</button>
-  </form>
-  {% else %}
-  <p class="muted">아직 저장된 재료가 없습니다.</p>
-  {% endfor %}
-</section>
+    if (!boxes.length || !count || !submitButton) {
+      return;
+    }
+
+    const updateSelectionState = () => {
+      const selectedCount = boxes.filter((box) => box.checked).length;
+      count.textContent = String(selectedCount);
+      submitButton.textContent = selectedCount > 0 ? `Recommend From ${selectedCount} Selected` : "Recommend From Selected Ingredients";
+    };
+
+    boxes.forEach((box) => box.addEventListener("change", updateSelectionState));
+    updateSelectionState();
+  })();
+</script>
 {% endblock %}

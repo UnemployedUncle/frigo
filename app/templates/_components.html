@@ -1,0 +1,88 @@
+{% macro status_badge(text, tone='default') -%}
+<span class="badge{% if tone != 'default' %} badge-{{ tone }}{% endif %}">{{ text }}</span>
+{%- endmacro %}
+
+{% macro stat_block(label, value, note='') -%}
+<article class="stat-block">
+  <span class="stat-label">{{ label }}</span>
+  <div class="stat-value">{{ value }}</div>
+  {% if note %}
+  <div class="stat-note">{{ note }}</div>
+  {% endif %}
+</article>
+{%- endmacro %}
+
+{% macro section_heading(kicker, title, subtitle='') -%}
+<div class="section-heading">
+  <div>
+    <span class="section-kicker">{{ kicker }}</span>
+    <h2 class="section-title">{{ title }}</h2>
+  </div>
+  {% if subtitle %}
+  <p class="section-subtitle">{{ subtitle }}</p>
+  {% endif %}
+</div>
+{%- endmacro %}
+
+{% macro recipe_card(recipe, saved=False, redirect_to='/', compact=False) -%}
+<article class="recipe-card{% if compact %} recipe-card-compact{% endif %}">
+  <div class="recipe-meta">
+    {{ status_badge('Saved', 'saved') if saved else status_badge('Ready') }}
+    <span class="caption">{{ recipe.primary_ingredients|length }} ingredients</span>
+  </div>
+  <div>
+    <h3 class="recipe-title">{{ recipe.title }}</h3>
+    <p class="recipe-summary">{{ recipe.summary }}</p>
+  </div>
+  <div class="pill-row">
+    {% for ingredient in recipe.primary_ingredients[:3] %}
+    <span class="pill">{{ ingredient }}</span>
+    {% endfor %}
+  </div>
+  <div class="recipe-actions">
+    <a class="button button-primary" href="/recipes/{{ recipe.id }}">View Recipe</a>
+    <form action="/recipes/{{ recipe.id }}/save" method="post">
+      <input type="hidden" name="redirect_to" value="{{ redirect_to }}">
+      <button class="button {% if saved %}button-danger{% else %}button-secondary{% endif %}" type="submit">
+        {{ "Unsave" if saved else "Save" }}
+      </button>
+    </form>
+  </div>
+</article>
+{%- endmacro %}
+
+{% macro featured_recipe(recipe, saved=False, redirect_to='/', reason='Selected ingredients context') -%}
+<article class="featured-card" data-featured-recipe="true">
+  <div class="featured-grid">
+    <div class="featured-visual">
+      <div>
+        {{ status_badge('Featured Recommendation', 'primary') }}
+      </div>
+      <strong>{{ recipe.title }}</strong>
+      <div class="pill-row">
+        {% for ingredient in recipe.primary_ingredients[:3] %}
+        <span class="pill">{{ ingredient }}</span>
+        {% endfor %}
+      </div>
+    </div>
+    <div class="featured-side">
+      <span class="meta-kicker">{{ reason }}</span>
+      <h2 class="featured-title">{{ recipe.title }}</h2>
+      <p class="featured-summary">{{ recipe.summary }}</p>
+      <div class="meta-row">
+        {{ status_badge(recipe.cuisine or 'Recipe') }}
+        {{ status_badge('Saved', 'saved') if saved else status_badge('Available', 'success') }}
+      </div>
+      <div class="recipe-actions">
+        <a class="button button-primary button-wide" href="/recipes/{{ recipe.id }}">Explore Recipe</a>
+        <form action="/recipes/{{ recipe.id }}/save" method="post">
+          <input type="hidden" name="redirect_to" value="{{ redirect_to }}">
+          <button class="button {% if saved %}button-danger{% else %}button-secondary{% endif %}" type="submit">
+            {{ "Unsave" if saved else "Save" }}
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</article>
+{%- endmacro %}

@@ -62,7 +62,6 @@ class RecipeRecord(BaseModel):
     required_ingredients: List[dict]
     optional_ingredients: List[dict]
     search_keywords: List[str]
-    workflow_file: Optional[str] = None
 
 
 class SearchPlanRecord(BaseModel):
@@ -83,7 +82,6 @@ class WorkflowStep(BaseModel):
     ingredients: List[str]
     tool: str
     estimated_seconds: int
-    estimated_minutes: Optional[int] = None
 
 
 class RecommendResponse(BaseModel):

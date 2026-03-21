@@ -26,6 +26,11 @@ class RecipeService:
         rows = self.recipe_repo.search_candidate_recipe_ids(normalized_targets, min_overlap, self.CANDIDATE_LIMIT)
         return [(row["id"], row["overlap_count"]) for row in rows]
 
+    def _minimum_overlap(self, fridge_item_count: int, minimum_overlap: int | None = None) -> int:
+        if minimum_overlap is not None:
+            return minimum_overlap
+        return 1 if fridge_item_count == 1 else 2
+
     def _urgent_bonus(self, recipe: Dict[str, Any], fridge_items: List[Dict[str, Any]]) -> int:
         keyword_names = set(self._normalize_names(recipe["search_keywords"]))
         bonus = 0
@@ -36,6 +41,23 @@ class RecipeService:
 
     def _score_recipe(self, recipe: Dict[str, Any], fridge_items: List[Dict[str, Any]], overlap_count: int) -> int:
         return (overlap_count * 100) + self._urgent_bonus(recipe, fridge_items)
+
+    def _rank_recipes(
+        self,
+        matched_recipes: List[Tuple[str, int]],
+        fridge_items: List[Dict[str, Any]],
+        *,
+        limit: int,
+    ) -> List[Dict[str, Any]]:
+        candidate_ids = [recipe_id for recipe_id, _ in matched_recipes]
+        recipes = self.recipe_repo.get_recipes_by_ids(candidate_ids)
+        recipes_by_id = {recipe["id"]: recipe for recipe in recipes}
+        ranked = sorted(
+            [item for item in matched_recipes if item[0] in recipes_by_id],
+            key=lambda item: self._score_recipe(recipes_by_id[item[0]], fridge_items, item[1]),
+            reverse=True,
+        )
+        return [recipes_by_id[recipe_id] for recipe_id, _ in ranked[:limit]]
 
     def _candidate_counts(self, fridge_item_count: int) -> List[int]:
         counts = [count for count in [5, 4, 3] if fridge_item_count >= count]
@@ -54,12 +76,15 @@ class RecipeService:
         *,
         limit: int = 8,
     ) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
-        return self.recommend(
-            fridge_items,
-            limit=limit,
-            force_fallback=True,
-            persist_plan=False,
-        )
+        if not fridge_items:
+            return [], []
+
+        selected_ingredients = [item["name"] for item in fridge_items if item.get("name")]
+        min_overlap = self._minimum_overlap(len(fridge_items))
+        matched_recipes = self._match_recipes(selected_ingredients, min_overlap)
+        if not matched_recipes:
+            return [], []
+        return [], self._rank_recipes(matched_recipes, fridge_items, limit=limit)
 
     def recommend(
         self,
@@ -82,7 +107,7 @@ class RecipeService:
         while counts_to_try:
             count = counts_to_try.pop(0)
             selection = self.agent.build_selection(fridge_items, count, force_fallback=force_fallback)
-            min_overlap = minimum_overlap if minimum_overlap is not None else (1 if len(fridge_items) == 1 else 2)
+            min_overlap = self._minimum_overlap(len(fridge_items), minimum_overlap)
             matches = self._match_recipes(selection.selected_ingredients, min_overlap)
 
             next_step = None
@@ -116,13 +141,4 @@ class RecipeService:
 
         if not matched_recipes:
             matched_recipes = best_matches
-
-        candidate_ids = [recipe_id for recipe_id, _ in matched_recipes]
-        recipes = self.recipe_repo.get_recipes_by_ids(candidate_ids)
-        recipes_by_id = {recipe["id"]: recipe for recipe in recipes}
-        ranked = sorted(
-            [item for item in matched_recipes if item[0] in recipes_by_id],
-            key=lambda item: self._score_recipe(recipes_by_id[item[0]], fridge_items, item[1]),
-            reverse=True,
-        )
-        return plan_steps, [recipes_by_id[recipe_id] for recipe_id, _ in ranked[:limit]]
+        return plan_steps, self._rank_recipes(matched_recipes, fridge_items, limit=limit)

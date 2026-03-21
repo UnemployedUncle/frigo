@@ -1,72 +1,59 @@
 {% extends "base.html" %}
+{% import "_components.html" as ui %}
+{% block title %}Frigo Home{% endblock %}
 {% block content %}
-<section class="hero">
-  <div>
-    <p class="eyebrow">FRIGO / TEXT HOME</p>
-    <h1>Text-first recipe flow, ready to cook.</h1>
-    <p class="lede">Home은 잔디와 추천 레시피만 보여주고, 냉장고 입력과 편집은 별도 Fridge 화면으로 분리합니다.</p>
-  </div>
-  <div class="actions">
-    <a class="button" href="/fridge">Open Fridge</a>
-    <a class="button button-primary" href="#recommended">Recommended For Tonight</a>
-  </div>
-</section>
-
-<section class="panel" style="margin-top: 24px;">
-  <p class="panel-title">HOME SUMMARY</p>
-  <div class="stats-grid">
-    <article class="stat-card">
-      <div class="muted">Saved Recipes</div>
-      <div class="stat-value">{{ saved_count }}</div>
-    </article>
-    <article class="stat-card">
-      <div class="muted">Completed Recipes</div>
-      <div class="stat-value">{{ completed_count }}</div>
-    </article>
-  </div>
-</section>
-
-<section class="panel" style="margin-top: 24px;">
-  <p class="panel-title">COOKING GRASS</p>
-  {% for row in grass_rows %}
-  <div class="grass-grid">
-    {% for cell in row %}
-    <div class="grass-cell">
-      <div class="muted">{{ cell.label }}</div>
-      <div class="grass-count">{{ cell.count }}</div>
-      <div class="muted">{{ cell.iso_date[5:] }}</div>
+<div class="page-shell" data-screen="home">
+  <section class="page-header surface-panel">
+    <div>
+      <span class="label-eyebrow">Dashboard</span>
+      <h1 class="page-title">Operational readiness for tonight.</h1>
+      <p class="page-intro">Home keeps the flow light: key progress numbers, recent cooking activity, and eight random recipes ready to review.</p>
     </div>
-    {% endfor %}
-  </div>
-  {% endfor %}
-</section>
+    <div class="page-actions">
+      <a class="button button-primary" href="/fridge">Open Fridge</a>
+      <a class="button button-ghost" href="#home-recommendations">Browse Picks</a>
+    </div>
+  </section>
 
-<section class="panel" style="margin-top: 24px;" id="recommended">
-  <p class="panel-title">RECOMMENDED FOR TONIGHT</p>
-  <div class="card-grid">
-    {% for recipe in recipes %}
-    <article class="text-card">
-      <p class="eyebrow">PLAN REPAS</p>
-      <h3>{{ recipe.title }}</h3>
-      <p class="muted">{{ recipe.summary }}</p>
-      <div class="pill-row">
-        {% for ingredient in recipe.primary_ingredients[:3] %}
-        <span class="pill">{{ ingredient }}</span>
+  <section class="surface-panel" id="home-stats">
+    {{ ui.section_heading("Performance", "Saved and completed at a glance", "The top line stays readable before any browsing starts.") }}
+    <div class="summary-grid">
+      {{ ui.stat_block("Saved Recipes", saved_count, "Pinned for later cooking sessions.") }}
+      {{ ui.stat_block("Completed Recipes", completed_count, "Accumulated completion records from cook mode.") }}
+    </div>
+  </section>
+
+  <section class="surface-panel" id="home-grass">
+    {{ ui.section_heading("Activity", "Recent cooking rhythm", "The grass stays visible, but secondary to the main dashboard metrics.") }}
+    <div class="activity-grid">
+      {% for row in grass_rows %}
+        {% for cell in row %}
+        <article class="activity-cell" data-level="{{ 0 if cell.count == 0 else 1 if cell.count == 1 else 2 }}">
+          <span class="activity-meta">{{ cell.label }}</span>
+          <strong class="activity-count">{{ cell.count }}</strong>
+          <span class="activity-meta">{{ cell.iso_date[5:] }}</span>
+        </article>
         {% endfor %}
-      </div>
-      <div class="actions" style="margin-top: 14px;">
-        <a class="button" href="/recipes/{{ recipe.id }}">View Recipe</a>
-        <form action="/recipes/{{ recipe.id }}/save" method="post">
-          <input type="hidden" name="redirect_to" value="/">
-          <button type="submit" class="{{ 'button-accent' if saved_map.get(recipe.id) else '' }}">
-            {{ "Unsave" if saved_map.get(recipe.id) else "Save" }}
-          </button>
-        </form>
-      </div>
-    </article>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="surface-panel" id="home-recommendations">
+    {{ ui.section_heading("Random 8", "Tonight's recipe picks", "The home feed remains random and lightweight, separate from fridge-based recommendation.") }}
+    {% if recipes %}
+    <div class="recipe-grid">
+      {% for recipe in recipes %}
+      {{ ui.recipe_card(recipe, saved_map.get(recipe.id), "/") }}
+      {% endfor %}
+    </div>
     {% else %}
-    <p class="muted">추천 결과가 없습니다.</p>
-    {% endfor %}
-  </div>
-</section>
+    <div class="empty-panel">
+      {{ ui.status_badge("Empty queue", "warning") }}
+      <h2 class="section-title">No recommendations available right now.</h2>
+      <p>추천 결과가 없습니다. 냉장고를 정리한 뒤 다시 확인해주세요.</p>
+      <a class="button button-primary" href="/fridge">Open Fridge</a>
+    </div>
+    {% endif %}
+  </section>
+</div>
 {% endblock %}

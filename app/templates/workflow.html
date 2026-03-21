@@ -1,61 +1,76 @@
 {% extends "base.html" %}
+{% import "_components.html" as ui %}
+{% block title %}Cook Mode · {{ recipe.title }}{% endblock %}
 {% block content %}
-<section class="hero">
-  <div>
-    <p class="eyebrow">COOKING MODE</p>
-    <h1>{{ recipe.title }}</h1>
-    <p class="lede">{{ recipe.summary }}</p>
-    <p class="muted">Auto step flow / Total recipe timer {{ total_seconds }}s</p>
-  </div>
-  <div class="actions">
-    <a class="button" href="/">Home</a>
-    <a class="button" href="/recipes/{{ recipe.id }}">Recipe Detail</a>
-  </div>
-</section>
-
-<div class="cook-grid" style="margin-top: 24px;">
-  <section class="panel">
-    <p class="panel-title">CURRENT STEP</p>
-    <div class="timer-readout"><span id="step-timer-value">00</span>s</div>
-    <div class="timer-subreadout">Total remaining: <span id="total-timer-value">{{ total_seconds }}</span>s</div>
-    <div class="timer-shell" aria-hidden="true">
-      <div class="timer-fill" id="timer-fill"></div>
+<div class="focus-shell" data-screen="cook-mode">
+  <header class="focus-header">
+    <div class="focus-brand">
+      <strong>FRIGO</strong>
+      {{ ui.status_badge("Cook Mode", "primary") }}
     </div>
-    <div class="step-row" style="grid-template-columns: 1fr; padding-top: 18px;">
-      <div>
-        <p class="muted">Step <span id="current-step-number">1</span> of {{ total_steps }}</p>
-        <h2 id="step-title"></h2>
-        <p id="step-description"></p>
-        <p class="muted">Tool: <span id="step-tool"></span></p>
-        <div class="pill-row" id="step-ingredients"></div>
-      </div>
+    <div class="button-row">
+      <a class="button button-secondary" href="/">Home</a>
+      <a class="button button-ghost" href="/recipes/{{ recipe.id }}">Recipe Detail</a>
     </div>
+  </header>
 
-    <div class="actions" style="margin-top: 20px;">
-      <button type="button" id="pause-button">Pause</button>
-      <button type="button" id="resume-button" style="display: none;">Resume</button>
-      <a class="button button-accent" href="{{ stop_url }}">Stop</a>
+  <main class="focus-main">
+    <section class="focus-stage">
+      <span class="focus-kicker">Current instruction</span>
+      <h1 class="focus-instruction" id="step-title"></h1>
+      <p class="focus-description" id="step-description"></p>
+      <div class="pill-row" id="step-ingredients"></div>
+      <p class="focus-support">Step <span id="current-step-number">1</span> of {{ total_steps }} · Tool <span id="step-tool"></span></p>
+    </section>
+
+    <aside class="focus-side">
+      <section class="focus-timer-panel">
+        <span class="focus-caption">Timer</span>
+        <div class="focus-time"><span id="step-timer-value">00</span>s</div>
+        <div class="focus-support">Total remaining <span id="total-timer-value">{{ total_seconds }}</span>s</div>
+        <div class="timer-shell" aria-hidden="true">
+          <div class="timer-fill" id="timer-fill"></div>
+        </div>
+      </section>
+
+      <section class="surface-panel" id="workflow-list-panel">
+        <div class="section-heading">
+          <div>
+            <span class="section-kicker">Progress</span>
+            <h2 class="section-title">Workflow queue</h2>
+          </div>
+          <p class="section-subtitle">Compact overview only. Execution stays focused on the current step.</p>
+        </div>
+        <div class="workflow-list" id="workflow-list">
+          {% for step in steps %}
+          <article class="workflow-step" data-step-number="{{ step.step_number }}">
+            <div class="workflow-step-number">{{ "%02d"|format(step.step_number) }}</div>
+            <div>
+              <h3 class="workflow-step-title">{{ step.title }}</h3>
+              <div class="workflow-step-meta">
+                {{ ui.status_badge(step.tool or 'Tool') }}
+                {{ ui.status_badge(step.estimated_seconds ~ 's', 'primary') }}
+              </div>
+            </div>
+          </article>
+          {% endfor %}
+        </div>
+      </section>
+    </aside>
+  </main>
+
+  <footer class="focus-footer" id="cook-controls">
+    <div class="focus-caption">Auto step flow is active for {{ recipe.title }}.</div>
+    <div class="focus-controls">
+      <button class="button button-secondary" type="button" id="pause-button">Pause</button>
+      <button class="button button-secondary" type="button" id="resume-button" style="display: none;">Resume</button>
+      <a class="button button-danger" href="{{ stop_url }}">Stop</a>
       <form action="/cook/{{ recipe.id }}/complete" method="post" id="complete-form">
         <input type="hidden" name="actual_seconds" value="{{ total_seconds }}" id="actual-seconds-input">
-        <button class="primary" type="submit">Complete Now</button>
+        <button class="button button-primary" type="submit">Complete Now</button>
       </form>
     </div>
-  </section>
-
-  <section class="panel">
-    <p class="panel-title">FULL WORKFLOW</p>
-    <div class="step-list" id="workflow-list">
-      {% for step in steps %}
-      <article class="step-row" data-step-number="{{ step.step_number }}">
-        <div class="step-meta">{{ step.step_number }}</div>
-        <div>
-          <strong>{{ step.title }}</strong>
-          <div class="muted">{{ step.tool }} / {{ step.estimated_seconds }}s</div>
-        </div>
-      </article>
-      {% endfor %}
-    </div>
-  </section>
+  </footer>
 </div>
 
 <script>
@@ -96,9 +111,9 @@
     };
 
     const highlightCurrentStep = () => {
-      workflowList.querySelectorAll(".step-row").forEach((row, index) => {
-        const marker = row.querySelector(".step-meta");
-        marker.textContent = index === currentStepIndex ? ">" : String(steps[index].step_number);
+      workflowList.querySelectorAll(".workflow-step").forEach((row, index) => {
+        row.style.opacity = index === currentStepIndex ? "1" : "0.65";
+        row.style.transform = index === currentStepIndex ? "translateX(4px)" : "none";
       });
     };
 
@@ -106,7 +121,7 @@
       const currentStep = steps[currentStepIndex];
       const ratio = currentStep.estimated_seconds === 0 ? 0 : remainingStepSeconds / currentStep.estimated_seconds;
       stepNumber.textContent = String(currentStep.step_number);
-      stepTitle.textContent = `${currentStep.step_number}. ${currentStep.title}`;
+      stepTitle.textContent = `${currentStep.title}`;
       stepDescription.textContent = currentStep.description;
       stepTool.textContent = currentStep.tool;
       stepTimerValue.textContent = String(remainingStepSeconds).padStart(2, "0");

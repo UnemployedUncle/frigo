@@ -122,25 +122,6 @@ def _render_fridge(
     )
 
 
-def _load_selected_fridge_items(item_ids: List[str]) -> List[Dict[str, Any]]:
-    fridge_items = fridge_service.list_items()
-    if not fridge_items:
-        raise ValueError("냉장고에 저장된 재료가 없습니다.")
-
-    if len(fridge_items) < 5:
-        return fridge_items
-
-    unique_ids = list(dict.fromkeys(item_ids))
-    if len(unique_ids) != 5:
-        raise ValueError("재료를 정확히 5개 선택해주세요.")
-
-    by_id = {item["id"]: item for item in fridge_items}
-    selected_items = [by_id[item_id] for item_id in unique_ids if item_id in by_id]
-    if len(selected_items) != 5:
-        raise ValueError("선택한 재료를 다시 확인해주세요.")
-    return selected_items
-
-
 def _render_selected_recommendations(
     request: Request,
     selected_items: List[Dict[str, Any]],
@@ -177,7 +158,7 @@ def fridge_recommendations_page(request: Request, item_ids: List[str] = Query(de
     if not item_ids:
         return RedirectResponse("/fridge", status_code=303)
     try:
-        selected_items = _load_selected_fridge_items(item_ids)
+        selected_items = fridge_service.load_selected_items(item_ids)
     except ValueError:
         return RedirectResponse("/fridge", status_code=303)
     return _render_selected_recommendations(request, selected_items)
@@ -219,7 +200,7 @@ def recommend_recipes():
 @app.post("/recommendations/fridge")
 def fridge_recommendations_submit(request: Request, item_ids: List[str] = Form(default=[])):
     try:
-        selected_items = _load_selected_fridge_items(item_ids)
+        selected_items = fridge_service.load_selected_items(item_ids)
     except ValueError as exc:
         return _render_fridge(request, selection_error=str(exc))
     query_string = urlencode([("item_ids", item["id"]) for item in selected_items])
@@ -307,11 +288,6 @@ def ui_update_item(
 def ui_delete_item(item_id: str):
     fridge_service.delete_item(item_id)
     return RedirectResponse("/fridge", status_code=303)
-
-
-@app.post("/ui/recommend")
-def ui_recommend(request: Request):
-    return _render_home(request)
 
 
 @app.post("/recipes/{recipe_id}/save")

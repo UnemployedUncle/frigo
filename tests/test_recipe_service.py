@@ -11,6 +11,11 @@ class FakeAgent:
         return self.selections[desired_count]
 
 
+class ExplodingAgent:
+    def build_selection(self, fridge_items, desired_count, force_fallback=False):
+        raise AssertionError("selected-item recommendation should not call the agent")
+
+
 class FakeRecipeRepo:
     def __init__(self, recipes):
         self.recipes = recipes
@@ -234,6 +239,58 @@ class RecipeServiceTest(unittest.TestCase):
         self.assertEqual(plan_steps[0]["next_step"], "결과가 많아 6개 조합으로 재검색")
         self.assertEqual(plan_steps[1]["selected_ingredients"], ["a", "b", "c", "d", "e", "f"])
         self.assertEqual(len(recommended), 5)
+
+    def test_recommend_from_selected_items_is_deterministic_and_non_persisting(self):
+        recipes = [
+            {
+                "id": "recipe_a",
+                "title": "Recipe A",
+                "search_keywords": ["spinach", "garlic"],
+            },
+            {
+                "id": "recipe_b",
+                "title": "Recipe B",
+                "search_keywords": ["spinach", "butter"],
+            },
+        ]
+        fridge_items = [
+            {"id": "item-1", "name": "Spinach", "normalized_name": "spinach", "days_left": 1},
+            {"id": "item-2", "name": "Garlic", "normalized_name": "garlic", "days_left": 4},
+        ]
+
+        service = RecipeService()
+        service.recipe_repo = FakeRecipeRepo(recipes)
+        service.agent = ExplodingAgent()
+        service.plan_repo = FakePlanRepo()
+
+        plan_steps, recommended = service.recommend_from_selected_items(fridge_items, limit=8)
+
+        self.assertEqual(plan_steps, [])
+        self.assertEqual(service.plan_repo.steps, [])
+        self.assertEqual([recipe["id"] for recipe in recommended], ["recipe_a"])
+
+    def test_recommend_from_selected_items_returns_empty_when_nothing_matches(self):
+        recipes = [
+            {
+                "id": "recipe_a",
+                "title": "Recipe A",
+                "search_keywords": ["chicken", "onion"],
+            }
+        ]
+        fridge_items = [
+            {"id": "item-1", "name": "Spinach", "normalized_name": "spinach", "days_left": 1},
+            {"id": "item-2", "name": "Garlic", "normalized_name": "garlic", "days_left": 4},
+        ]
+
+        service = RecipeService()
+        service.recipe_repo = FakeRecipeRepo(recipes)
+        service.agent = ExplodingAgent()
+        service.plan_repo = FakePlanRepo()
+
+        plan_steps, recommended = service.recommend_from_selected_items(fridge_items, limit=8)
+
+        self.assertEqual(plan_steps, [])
+        self.assertEqual(recommended, [])
 
 
 if __name__ == "__main__":

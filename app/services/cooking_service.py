@@ -27,9 +27,6 @@ class CookingService:
             )
         return grass
 
-    def recent_completed(self, limit: int = 4) -> List[Dict[str, Any]]:
-        return self.repo.list_recent(limit)
-
     def home_summary_counts(self) -> Dict[str, int]:
         return {"completed_count": self.repo.count_all()}
 

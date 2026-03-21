@@ -185,10 +185,10 @@
 
 ## 10. 구현 체크리스트
 
-- [ ] README를 현재 구현 기준으로 정리합니다.
-- [ ] route와 service 책임 정리 대상을 확정합니다.
-- [ ] dead code 제거 후보를 확인하고 우선순위를 정합니다.
-- [ ] deprecated 필드를 주 경로에서 더 멀리 밀어냅니다.
-- [ ] selected-item recommendation 경계를 더 명확히 정리합니다.
-- [ ] fridge insert/update의 단순화 가능 경로를 점검합니다.
-- [ ] 기본 테스트와 smoke 테스트 경계를 다시 검토합니다.
+- [x] README를 현재 구현 기준으로 정리합니다.
+- [x] route와 service 책임 정리 대상을 확정합니다.
+- [x] dead code 제거 후보를 확인하고 우선순위를 정합니다.
+- [x] deprecated 필드를 주 경로에서 더 멀리 밀어냅니다.
+- [x] selected-item recommendation 경계를 더 명확히 정리합니다.
+- [x] fridge insert/update의 단순화 가능 경로를 점검합니다.
+- [x] 기본 테스트와 smoke 테스트 경계를 다시 검토합니다.

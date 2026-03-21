@@ -18,14 +18,14 @@ class FridgeRepository:
 
     def insert_items(self, items: List[Dict[str, Any]]) -> None:
         with get_connection() as conn, conn.cursor() as cur:
-            for item in items:
-                cur.execute(
-                    """
-                    INSERT INTO fridge_items (
-                        id, name, normalized_name, quantity, unit,
-                        expiry_date, days_left, source_text_id
-                    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-                    """,
+            cur.executemany(
+                """
+                INSERT INTO fridge_items (
+                    id, name, normalized_name, quantity, unit,
+                    expiry_date, days_left, source_text_id
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                """,
+                [
                     (
                         item["id"],
                         item["name"],
@@ -35,8 +35,10 @@ class FridgeRepository:
                         item["expiry_date"],
                         item["days_left"],
                         item["source_text_id"],
-                    ),
-                )
+                    )
+                    for item in items
+                ],
+            )
             conn.commit()
 
     def list_items(self) -> List[Dict[str, Any]]:

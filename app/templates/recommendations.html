@@ -1,52 +1,53 @@
 {% extends "base.html" %}
+{% import "_components.html" as ui %}
+{% block title %}Frigo Recommendations{% endblock %}
 {% block content %}
-<section class="hero">
-  <div>
-    <p class="eyebrow">FRIDGE RECOMMENDATIONS</p>
-    <h1>Recipes from your selected ingredients.</h1>
-    <p class="lede">선택한 냉장고 재료를 기준으로 기존 추천 로직을 실행해 1개에서 8개까지 결과를 보여줍니다.</p>
-  </div>
-  <div class="actions">
-    <a class="button" href="/fridge">Back To Fridge</a>
-    <a class="button" href="/">Home</a>
-  </div>
-</section>
+<div class="page-shell" data-screen="recommendations">
+  <section class="page-header surface-panel">
+    <div>
+      <span class="label-eyebrow">Recommendations</span>
+      <h1 class="page-title">Curated from what you selected.</h1>
+      <p class="page-intro">The recommendation screen should read as a consequence of fridge choice, not as a second version of Home.</p>
+    </div>
+    <div class="page-actions">
+      <a class="button button-secondary" href="/fridge">Back To Fridge</a>
+      <a class="button button-ghost" href="/">Home</a>
+    </div>
+  </section>
 
-<section class="panel" style="margin-top: 24px;">
-  <p class="panel-title">SELECTED INGREDIENTS</p>
-  <div class="pill-row">
-    {% for item in selected_items %}
-    <span class="pill">{{ item.name }}</span>
-    {% endfor %}
-  </div>
-</section>
+  <section class="surface-panel" id="selected-context">
+    {{ ui.section_heading("Context", "Selected ingredients", "These items explain why the result list looks the way it does.") }}
+    <div class="context-pills">
+      {% for item in selected_items %}
+      <span class="pill">{{ item.name }}</span>
+      {% endfor %}
+    </div>
+  </section>
 
-<section class="panel" style="margin-top: 24px;">
-  <p class="panel-title">RECOMMENDED RECIPES</p>
-  <div class="card-grid">
-    {% for recipe in recipes %}
-    <article class="text-card">
-      <p class="eyebrow">PLAN REPAS</p>
-      <h3>{{ recipe.title }}</h3>
-      <p class="muted">{{ recipe.summary }}</p>
-      <div class="pill-row">
-        {% for ingredient in recipe.primary_ingredients[:3] %}
-        <span class="pill">{{ ingredient }}</span>
+  {% if recipes %}
+    {% set redirect_to = request.url.path ~ ('?' ~ request.url.query if request.url.query else '') %}
+    {{ ui.featured_recipe(recipes[0], saved_map.get(recipes[0].id), redirect_to, "Selected ingredients context") }}
+
+    {% if recipes|length > 1 %}
+    <section class="surface-panel" id="recommendation-grid">
+      {{ ui.section_heading("Queue", "More recipes from the same context", "The first result is elevated. The rest stay compact and easy to scan.") }}
+      <div class="recipe-grid">
+        {% for recipe in recipes[1:] %}
+        {{ ui.recipe_card(recipe, saved_map.get(recipe.id), redirect_to, True) }}
         {% endfor %}
       </div>
-      <div class="actions" style="margin-top: 14px;">
-        <a class="button" href="/recipes/{{ recipe.id }}">View Recipe</a>
-        <form action="/recipes/{{ recipe.id }}/save" method="post">
-          <input type="hidden" name="redirect_to" value="{{ request.url.path }}{% if request.url.query %}?{{ request.url.query }}{% endif %}">
-          <button type="submit" class="{{ 'button-accent' if saved_map.get(recipe.id) else '' }}">
-            {{ "Unsave" if saved_map.get(recipe.id) else "Save" }}
-          </button>
-        </form>
-      </div>
-    </article>
-    {% else %}
-    <p class="muted">선택한 재료로는 추천 결과가 없습니다.</p>
-    {% endfor %}
-  </div>
-</section>
+    </section>
+    {% endif %}
+  {% else %}
+  <section class="empty-panel surface-panel" id="recommendation-empty">
+    {{ ui.status_badge("No matches", "warning") }}
+    <h2 class="section-title">No recipe matched the selected ingredients.</h2>
+    <p>선택한 재료 조합으로는 추천 결과가 없습니다. 재료를 다시 고르거나 냉장고를 업데이트해주세요.</p>
+    <div class="button-row">
+      <a class="button button-primary" href="/fridge">Back To Fridge</a>
+      <a class="button button-secondary" href="/">Return Home</a>
+    </div>
+  </section>
+  {% endif %}
+</div>
 {% endblock %}

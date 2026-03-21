@@ -3,191 +3,92 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{{ title or "Frigo" }}</title>
-  <style>
-    :root {
-      --bg: #f3efe4;
-      --paper: #fbf7ed;
-      --ink: #1f2a20;
-      --muted: #5f665a;
-      --line: #cfc4af;
-      --accent: #2e4d38;
-      --accent-2: #c65a32;
-    }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      background:
-        linear-gradient(180deg, rgba(255,255,255,0.35), rgba(255,255,255,0) 28%),
-        var(--bg);
-      color: var(--ink);
-      font-family: "IBM Plex Mono", "SFMono-Regular", "Courier New", monospace;
-      line-height: 1.5;
-    }
-    a { color: inherit; text-decoration: none; }
-    main { max-width: 1160px; margin: 0 auto; padding: 28px 20px 40px; }
-    h1, h2, h3, p { margin-top: 0; }
-    .hero, .panel, .text-card {
-      background: var(--paper);
-      border: 1px solid var(--line);
-      border-radius: 18px;
-      box-shadow: 0 10px 30px rgba(31, 42, 32, 0.05);
-    }
-    .hero {
-      padding: 24px;
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      gap: 20px;
-    }
-    .hero h1 { font-size: 34px; margin-bottom: 12px; }
-    .eyebrow, .panel-title {
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      color: var(--muted);
-      font-size: 12px;
-    }
-    .lede { color: var(--muted); max-width: 60ch; }
-    .layout-two { display: grid; gap: 20px; grid-template-columns: 1.2fr 0.8fr; }
-    .layout-three { display: grid; gap: 20px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
-    .panel { padding: 20px; }
-    .text-card { padding: 18px; }
-    .button, button {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 42px;
-      padding: 10px 14px;
-      border-radius: 999px;
-      border: 1px solid var(--ink);
-      background: transparent;
-      color: var(--ink);
-      cursor: pointer;
-      font: inherit;
-    }
-    .button-primary, button.primary {
-      background: var(--accent);
-      border-color: var(--accent);
-      color: #f7f1e4;
-    }
-    .button-accent { border-color: var(--accent-2); color: var(--accent-2); }
-    .actions { display: flex; gap: 10px; flex-wrap: wrap; }
-    .muted { color: var(--muted); }
-    .card-grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
-    .stats-grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
-    .stat-card {
-      padding: 18px;
-      border-radius: 16px;
-      border: 1px solid var(--line);
-      background: rgba(255, 255, 255, 0.45);
-    }
-    .stat-value { font-size: 36px; color: var(--accent); }
-    .pill-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
-    .pill {
-      display: inline-block;
-      padding: 4px 8px;
-      border-radius: 999px;
-      border: 1px solid var(--line);
-      background: rgba(46, 77, 56, 0.06);
-      font-size: 12px;
-    }
-    .ascii-fridge {
-      background: #f7f1e2;
-      border: 1px dashed var(--line);
-      border-radius: 16px;
-      padding: 16px;
-      white-space: pre-wrap;
-    }
-    .fridge-grid {
-      display: grid;
-      gap: 14px;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      margin-top: 16px;
-    }
-    .fridge-bin {
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      padding: 12px;
-      min-height: 140px;
-      background: rgba(255, 255, 255, 0.45);
-    }
-    .fridge-bin h3 { font-size: 13px; letter-spacing: 0.12em; text-transform: uppercase; }
-    .fridge-bin ul, .text-list, .plain-list { list-style: none; padding: 0; margin: 0; }
-    .fridge-bin li, .plain-list li, .text-list li { padding: 4px 0; border-bottom: 1px solid rgba(207, 196, 175, 0.55); }
-    .fridge-bin li:last-child, .plain-list li:last-child, .text-list li:last-child { border-bottom: none; }
-    textarea, input {
-      width: 100%;
-      font: inherit;
-      color: inherit;
-      background: #fffdf7;
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      padding: 12px 14px;
-    }
-    textarea { min-height: 140px; resize: vertical; }
-    .mini-form { display: grid; gap: 8px; grid-template-columns: 1.2fr 0.8fr 0.8fr 1fr auto auto; margin-top: 8px; }
-    .selection-grid {
-      display: grid;
-      gap: 10px;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      margin-top: 12px;
-    }
-    .selection-card {
-      display: flex;
-      gap: 10px;
-      align-items: flex-start;
-      padding: 12px;
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      background: rgba(255, 255, 255, 0.55);
-    }
-    .selection-card input { width: auto; margin-top: 4px; }
-    .step-list { display: grid; gap: 12px; }
-    .step-row {
-      display: grid;
-      grid-template-columns: 30px 1fr;
-      gap: 12px;
-      padding: 12px 0;
-      border-top: 1px solid rgba(207, 196, 175, 0.65);
-    }
-    .step-row:first-child { border-top: none; padding-top: 0; }
-    .step-meta { color: var(--muted); }
-    .grass-grid { display: grid; gap: 10px; grid-template-columns: repeat(7, minmax(0, 1fr)); margin-top: 14px; }
-    .grass-cell {
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      padding: 10px;
-      text-align: center;
-      min-height: 74px;
-      background: rgba(255, 255, 255, 0.45);
-    }
-    .grass-count { font-size: 26px; color: var(--accent); }
-    .timer-shell {
-      border: 1px solid var(--line);
-      border-radius: 999px;
-      padding: 4px;
-      background: rgba(255,255,255,0.6);
-    }
-    .timer-fill {
-      width: 100%;
-      height: 16px;
-      border-radius: 999px;
-      background: linear-gradient(90deg, var(--accent), var(--accent-2));
-      transition: width 1s linear;
-    }
-    .timer-readout { font-size: 40px; margin: 6px 0 14px; }
-    .timer-subreadout { font-size: 16px; color: var(--muted); margin-bottom: 10px; }
-    .cook-grid { display: grid; gap: 20px; grid-template-columns: 1.4fr 0.6fr; }
-    @media (max-width: 900px) {
-      .layout-two, .layout-three, .cook-grid, .fridge-grid { grid-template-columns: 1fr; }
-      .hero { flex-direction: column; }
-      .mini-form { grid-template-columns: 1fr; }
-    }
-  </style>
+  <title>{% block title %}Frigo{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/ui.css">
+  {% block head_extra %}{% endblock %}
 </head>
-<body>
-  <main>
-    {% block content %}{% endblock %}
-  </main>
+{% set path = request.url.path %}
+{% set is_cook = path[:6] == '/cook/' %}
+{% set page_markup %}
+  {% block content %}{% endblock %}
+{% endset %}
+<body class="{{ 'focus-body' if is_cook else 'shell-body' }}">
+  {% if is_cook %}
+    {{ page_markup }}
+  {% else %}
+  <aside class="app-sidebar" aria-label="Primary">
+    <div class="brand-lockup">
+      <div class="brand-mark">FRIGO</div>
+      <div class="brand-copy">Text-first kitchen flow, rebuilt with Stitch-inspired operational clarity.</div>
+    </div>
+
+    <section class="profile-card">
+      <span class="profile-role">Kitchen Console</span>
+      <div class="profile-status">Active Service</div>
+      <p class="panel-copy">Fast overview, fridge intake, recipe triage, and cook execution in one flow.</p>
+    </section>
+
+    <nav class="sidebar-nav">
+      <a class="nav-link {{ 'nav-link-active' if path == '/' else '' }}" href="/" {% if path == '/' %}aria-current="page"{% endif %}>
+        <span class="nav-link-icon">01</span>
+        <span class="nav-link-copy">
+          <span class="nav-link-label">Dashboard</span>
+          <span class="nav-link-subtitle">Home and activity</span>
+        </span>
+      </a>
+      <a class="nav-link {{ 'nav-link-active' if path == '/fridge' else '' }}" href="/fridge" {% if path == '/fridge' %}aria-current="page"{% endif %}>
+        <span class="nav-link-icon">02</span>
+        <span class="nav-link-copy">
+          <span class="nav-link-label">Fridge</span>
+          <span class="nav-link-subtitle">Inventory management</span>
+        </span>
+      </a>
+      <a class="nav-link {{ 'nav-link-active' if path == '/recommendations/fridge' else '' }}" href="/recommendations/fridge" {% if path == '/recommendations/fridge' %}aria-current="page"{% endif %}>
+        <span class="nav-link-icon">03</span>
+        <span class="nav-link-copy">
+          <span class="nav-link-label">Recommendations</span>
+          <span class="nav-link-subtitle">Context-driven picks</span>
+        </span>
+      </a>
+    </nav>
+
+    <div class="sidebar-spacer"></div>
+
+    <section class="sidebar-note">
+      <span class="sidebar-caption">Operational note</span>
+      <h3>Keep the flow lean.</h3>
+      <p class="panel-copy">Recipe detail and cook mode stay focused. Fridge remains the only dense management surface.</p>
+    </section>
+  </aside>
+
+  <header class="mobile-topbar">
+    <strong>Frigo</strong>
+    <span class="caption">{{ 'Recommendations' if path == '/recommendations/fridge' else 'Fridge' if path == '/fridge' else 'Kitchen Flow' }}</span>
+  </header>
+
+  <div class="shell-main">
+    <main class="page-content">
+      {{ page_markup }}
+    </main>
+  </div>
+
+  <nav class="mobile-nav" aria-label="Mobile">
+    <a class="mobile-nav-link {{ 'mobile-nav-link-active' if path == '/' else '' }}" href="/" {% if path == '/' %}aria-current="page"{% endif %}>
+      <span class="mobile-nav-icon">01</span>
+      <span class="mobile-nav-label">Home</span>
+    </a>
+    <a class="mobile-nav-link {{ 'mobile-nav-link-active' if path == '/fridge' else '' }}" href="/fridge" {% if path == '/fridge' %}aria-current="page"{% endif %}>
+      <span class="mobile-nav-icon">02</span>
+      <span class="mobile-nav-label">Fridge</span>
+    </a>
+    <a class="mobile-nav-link {{ 'mobile-nav-link-active' if path == '/recommendations/fridge' else '' }}" href="/recommendations/fridge" {% if path == '/recommendations/fridge' %}aria-current="page"{% endif %}>
+      <span class="mobile-nav-icon">03</span>
+      <span class="mobile-nav-label">Picks</span>
+    </a>
+  </nav>
+  {% endif %}
 </body>
 </html>

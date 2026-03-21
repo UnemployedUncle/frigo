@@ -25,27 +25,6 @@ class CookingSessionRepository:
             )
             return cur.fetchall()
 
-    def list_recent(self, limit: int) -> List[Dict[str, Any]]:
-        with get_connection() as conn, conn.cursor() as cur:
-            cur.execute(
-                """
-                SELECT
-                    cs.id,
-                    cs.recipe_id,
-                    cs.completed_at,
-                    cs.actual_seconds,
-                    r.title,
-                    r.summary,
-                    r.primary_ingredients
-                FROM cooking_sessions cs
-                JOIN recipes r ON r.id = cs.recipe_id
-                ORDER BY cs.completed_at DESC
-                LIMIT %s
-                """,
-                (limit,),
-            )
-            return cur.fetchall()
-
     def insert_session(self, session_id: str, recipe_id: str, completed_at: datetime, actual_seconds: int) -> None:
         with get_connection() as conn, conn.cursor() as cur:
             cur.execute(
